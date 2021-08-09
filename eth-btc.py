@@ -48,7 +48,7 @@ def hist_to_model_prep(coin_hist):
 	coin_hist["btc_price20"] = coin_hist["btc_price"].rolling(20, win_type='triang').mean()
 	coin_hist["btc_price24"] = coin_hist["btc_price"].rolling(24, win_type='triang').mean()
 	coin_hist["btc_price72"] = coin_hist["btc_price"].rolling(72, win_type='triang').mean()
-	coin_hist["next"] = coin_hist["btc_price12"].shift(periods=-24)
+	coin_hist["next"] = coin_hist["btc_price12"].shift(periods=-48)
 	coin_hist["n_bp"] = (coin_hist["next"]/coin_hist["btc_price"] - 1)
 	coin_hist["sell"] = coin_hist["n_bp"] > np.mean(coin_hist["n_bp"]) + 1*np.std(coin_hist["n_bp"])
 	coin_hist["sell"] = coin_hist["sell"].astype('int32')
@@ -127,8 +127,8 @@ def model_build_and_run(coin_hist):
 	output["p_sell"] = psell_mean
 	output["o3_go"] = o3_go
 	output["o3_sell"] = o3_sell
-	output["conviction_go"] = abs(o3_go/pgo_sd)/5
-	output["conviction_sell"] = abs(o3_sell/psell_sd)/5
+	output["conviction_go"] = abs(o3_go/pgo_sd)/10
+	output["conviction_sell"] = abs(o3_sell/psell_sd)/10
 	output["go_signal"] =  int(o3_go - o3_sell > 0.12)
 	output["sell_signal"] = int(o3_sell - o3_go > 0.12)
 
@@ -227,7 +227,7 @@ for x in index:
 		pct = round((i / len(coin_hist))*100, 2)
 		if i % 79 == 0: print("Simulation is " + str(pct) + '% complete')
 
-	coin_hist = hist_to_pnl(coin_hist, 28, 0.4)
+	coin_hist = hist_to_pnl(coin_hist, 28, 0.6)
 	coin_hist = coin_hist.iloc[::-1]
 	coin_hist.to_csv(('perf/ethereum_perf.csv'))
 	cmd = coin_hist[['market_tms', 'btc_price', 'p_go', 'p_sell', 'go_signal', 'sell_signal', 'buy_q', 'sell_q', 'buy_cost', 'sell_rev', 'algo_rt']]
