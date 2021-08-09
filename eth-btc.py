@@ -132,7 +132,6 @@ def model_build_and_run(coin_hist):
 	output["go_signal"] =  int(o3_go - o3_sell > 0.12)
 	output["sell_signal"] = int(o3_sell - o3_go > 0.12)
 
-	# print(output)
 	return output
 
 
@@ -142,6 +141,8 @@ def build_models_on_train( model, X_train,  y_train):
     return classifier
 
 def autoML(X_train, X_test, y_train, y_test):
+
+	# Go
 	models_to_run = [LogisticRegression] #, SVR, MLPRegressor, GaussianNB, SGDRegressor]
 
 	max_score = 0
@@ -159,8 +160,6 @@ def autoML(X_train, X_test, y_train, y_test):
 		if build.score(X_test, y_test) > max_score:
 			max_score = build.score(X_test, y_test)
 			max_build = build
-
-	predicted = max_build.predict(X_test)
 
 	# print()
 	# print("RESULTS: ")
@@ -197,12 +196,10 @@ index = ['ethereum']
 
 for x in index:
 	import time
-	import datetime
 	time.sleep(1)
 	filename = 'data/' + x + '_btc.csv'
 	coin_price_hist(x, 'btc', 85, 'hourly').to_csv(filename)
 	coin_hist = get_coin_hist_tms(x)
-	coin_hist = coin_hist.drop(columns=['btc_usd'])
 	cmd_log = pd.DataFrame(columns = ['market_tms', 'btc_price', 'p_go', 'p_sell', 'go_signal', 'sell_signal', 'algo_rt'])
 
 	coin_hist = hist_to_model_prep(coin_hist)
@@ -226,7 +223,6 @@ for x in index:
 		coin_hist["go_signal"].iloc[i] =  o['go_signal'].values[0]
 		coin_hist["sell_signal"].iloc[i] =  o['sell_signal'].values[0]
 
-		
 		i = i + 1
 		pct = round((i / len(coin_hist))*100, 2)
 		if i % 79 == 0: print("Simulation is " + str(pct) + '% complete')
@@ -244,7 +240,7 @@ for x in index:
 	print("----------------------------------------------------------------------------------------------")
 	print(feed)
 	print(str(n))
-  # Uncomment below to commit orders to Coinbase wallet
+	# Uncomment below to push order to coinbase account
 	# push_order(feed)
 	get_fills_hist('ETH-BTC')
 	print("----------------------------------------------------------------------------------------------")
