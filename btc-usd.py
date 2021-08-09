@@ -33,7 +33,6 @@ def get_btc_hist_tms(coin):
 # Create variables for machine learning model
 def hist_to_model_prep(coin_hist):
 	coin_hist["prev"] = coin_hist["btc_price"].shift(periods=1)
-	# coin_hist["btc_price"] = 10000*(coin_hist["btc_price"]/coin_hist["btc_price"].shift(periods=1) - 1)
 	coin_hist["btc_price2"] = coin_hist["btc_price"].rolling(2, win_type='triang').mean()
 	coin_hist["btc_price3"] = coin_hist["btc_price"].rolling(3, win_type='triang').mean()
 	coin_hist["btc_price4"] = coin_hist["btc_price"].rolling(4, win_type='triang').mean()
@@ -134,8 +133,8 @@ def model_build_and_run(coin_hist):
 	output["p_sell"] = psell_mean
 	output["o3_go"] = o3_go
 	output["o3_sell"] = o3_sell
-	output["conviction_go"] = abs(o3_go/pgo_sd)/5
-	output["conviction_sell"] = abs(o3_sell/psell_sd)/5
+	output["conviction_go"] = abs(o3_go/pgo_sd)/10
+	output["conviction_sell"] = abs(o3_sell/psell_sd)/10
 	output["go_signal"] =  int(o3_go - o3_sell > 0.12)
 	output["sell_signal"] = int(o3_sell - o3_go > 0.12)
 
@@ -156,7 +155,6 @@ def autoML(X_train, X_test, y_train, y_test):
 	max_build = 0
 
 	for algo in models_to_run:
-		# print(algo)
 		build = build_models_on_train(algo, X_train, y_train)
 		pred = build.predict(X_test)
 		# print("MAE = {:5.4f}".format(metrics.mean_absolute_error(y_test, pred)))
@@ -212,7 +210,9 @@ for x in index:
 	coin_price_hist(x, 'usd', 85, 'hourly').to_csv(filename)
 	coin_hist = get_btc_hist_tms(x)
 	cmd_log = pd.DataFrame(columns = ['market_tms', 'btc_price', 'p_go', 'p_sell', 'go_signal', 'sell_signal', 'algo_rt'])
+
 	coin_hist = hist_to_model_prep(coin_hist)
+
 	coin_hist = coin_hist.sort_values(by='market_tms', ascending=True)
 
 	window = 28*24
@@ -234,7 +234,7 @@ for x in index:
 		pct = round((i / len(coin_hist))*100, 2)
 		if i % 79 == 0: print("Simulation is " + str(pct) + '% complete')
 
-	coin_hist = hist_to_pnl(coin_hist, 1.5, 0.01)
+	coin_hist = hist_to_pnl(coin_hist, 1.5, 0.005)
 	coin_hist = coin_hist.iloc[::-1]
 	coin_hist.to_csv(('perf/bitcoin_perf.csv'))
 	cmd = coin_hist[['market_tms', 'btc_price', 'p_go', 'p_sell', 'go_signal', 'sell_signal', 'buy_q', 'sell_q', 'buy_cost', 'sell_rev', 'algo_rt']]
@@ -251,11 +251,3 @@ for x in index:
 	get_fills_hist('BTC-USD')
 	print("----------------------------------------------------------------------------------------------")
 	print("")
-
-
-
-
-
-
-
-
