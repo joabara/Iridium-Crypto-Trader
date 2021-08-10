@@ -25,8 +25,11 @@ import warnings
 warnings.filterwarnings('ignore')
 
 def push_order(feed):
-	buy_cost = round(float(feed[8]),4)
-	sell_rev = round(float(feed[9]),4)
+	buy_cost = round(float(feed[8]),2)
+	sell_rev = round(float(feed[9]),2)
+
+	print(buy_cost)
+	print(sell_rev)
 
 	if (buy_cost > 0) or (sell_rev > 0):
 		import cbpro
@@ -37,14 +40,17 @@ def push_order(feed):
 		client = cbpro.AuthenticatedClient(api_key, api_secret, api_pass, api_url=url)
 		order_transcript = "No Action"
 
-		if( buy_cost > 0):
+		if(buy_cost > 0):
+			print("BUY")
 			order_transcript = str( client.place_market_order(product_id='BTC-USD', side= 'buy', funds = buy_cost))
 
 		if (sell_rev > 0):
+			print("SELL")
 			order_transcript = str(client.place_market_order(product_id='BTC-USD', side= 'sell', funds = sell_rev))
 
 		log = open("btc-usd-log.txt", "a")
 		n = log.write((str(now) + " | " + "Buy: " + str(buy_cost) + "Sell: " + str(sell_rev) + " " + order_transcript + "\n"))
+		print(order_transcript)
 		log.close()
 
 
@@ -296,7 +302,8 @@ for x in index:
 	print("----------------------------------------------------------------------------------------------")
 	print(feed)
 	print(str(n))
-	# push_order(feed)
+	# Uncomment below to push orders to coinbase.
+	push_order(feed)
 	get_fills_hist('BTC-USD')
 	print("----------------------------------------------------------------------------------------------")
 	print("")
