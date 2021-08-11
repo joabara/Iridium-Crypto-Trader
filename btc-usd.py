@@ -302,8 +302,7 @@ for x in index:
 	print("----------------------------------------------------------------------------------------------")
 	print(feed)
 	print(str(n))
-	# Uncomment below to push orders to coinbase.
-	push_order(feed)
+	# push_order(feed)
 	get_fills_hist('BTC-USD')
 	print("----------------------------------------------------------------------------------------------")
 	print("")
