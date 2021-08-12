@@ -20,7 +20,7 @@ Algorithmic Trading in Crypto Markets
 
 ## Methodology
 
-### ‘TENET’ algorithm
+### Inverted Logistic Regression
 
 When I started this project, I found that Logistic Regression was almost
 always the best model to use when trying to predict price movement over
@@ -41,9 +41,7 @@ by comparison because the bot’s learning seemed fine but needed some help.
 In laymen’s terms, the bot’s strategy is “*Whatever I was going to do,
 just do the opposite and I’ll do great!*”
 
-Like the movie TENET, this concept is actually quite entertaining and
-clearly works, but might find itself suspect to the casual viewer. I’ve
-posted various performance metrics below including a full daily balance
+I’ve posted various performance metrics below including a full daily balance
 sheet, and I have launched this algorithm into production and will be
 monitoring results until mid-October.
 
