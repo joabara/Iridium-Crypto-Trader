@@ -1,5 +1,7 @@
-# Iridium-Crypto-Trader
-An cryptocurrency trading bot that uses automated machine learning for decision making to maximize returns.
+Algorithmic Trading in Crypto Markets
+================
+Alessandro Joabar
+8/8/2021
 
 ## Summary
 
@@ -18,15 +20,44 @@ An cryptocurrency trading bot that uses automated machine learning for decision 
 
 ![](readme_files/figure-gfm/pnl-1.png)<!-- -->
 
+## Methodology
+
+### ‘TENET’ algorithm
+
+When I started this project, I found that Logistic Regression was almost
+always the best model to use when trying to predict price movement over
+the next 24 hours. It would take the expected probability that the price
+would go up and compare it to the expected probability that the price
+will go down. If there is a significant gap between the two, it will go
+with the more likely outcome. If P(Price goes up) is 0.85 and P(Price
+goes down) is 0.35, then it will expect the price to go up, and it will
+send a buy order.
+
+However, the algorithm had a terrible performance when trying to predict
+the price movement direction, hovering around 15% accuracy. Fortunately,
+in this case 15% accuracy is so bad that it can actually be used in our
+advantage. So, to boost my accuracy rate, we kept the model the same but
+inverted the bot’s decision. This turned out to be extremely profitable
+by comparison because the bot’s learning seemed to be problematic.
+
+In laymen’s terms, the bot’s strategy is “*Whatever I was going to do,
+just do the opposite and I’ll do great!*”
+
+Like the movie TENET, this concept is actually quite entertaining and
+clearly works, but might find itself suspect to the casual viewer. I’ve
+posted various performance metrics below including a full daily balance
+sheet, and I have launched this algorithm into production and will be
+monitoring results until mid-October.
+
 ## Performance
 
-#### Before
+### Before
 
 | Date       | ETH | Value.In.BTC | BTC | Profit.In.BTC |
 |:-----------|----:|-------------:|----:|--------------:|
 | 2021-06-15 |  28 |     1.774333 |   0 |             0 |
 
-#### After
+### After
 
 | Date       |      ETH | Value.In.BTC |       BTC | Profit.In.BTC |
 |:-----------|---------:|-------------:|----------:|--------------:|
@@ -96,4 +127,3 @@ An cryptocurrency trading bot that uses automated machine learning for decision 
 | 2021-06-17 | 28.00000 |     1.737508 |  0.0000000 |     0.0000000 |
 | 2021-06-16 | 28.00000 |     1.755601 |  0.0000000 |     0.0000000 |
 | 2021-06-15 | 28.00000 |     1.774333 |  0.0000000 |     0.0000000 |
-
