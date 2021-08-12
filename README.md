@@ -33,10 +33,10 @@ send a buy order.
 
 However, the algorithm had a terrible performance when trying to predict
 the price movement direction, hovering around 15% accuracy. Fortunately,
-in this case 15% accuracy is so bad that it can actually be used in our
+in this case, 15% accuracy is so bad that it can actually be used in our
 advantage. So, to boost my accuracy rate, we kept the model the same but
-inverted the bot’s decision. This turned out to be extremely profitable
-by comparison because the bot’s learning seemed to be problematic.
+*inverted* the bot’s decision. This turned out to be extremely profitable
+by comparison because the bot’s learning seemed fine but needed some help.
 
 In laymen’s terms, the bot’s strategy is “*Whatever I was going to do,
 just do the opposite and I’ll do great!*”
