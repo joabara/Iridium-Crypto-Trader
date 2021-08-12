@@ -1,7 +1,5 @@
 Algorithmic Trading in Crypto Markets
 ================
-Alessandro Joabar
-8/8/2021
 
 ## Summary
 
