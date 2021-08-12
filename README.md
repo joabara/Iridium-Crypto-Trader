@@ -1,7 +1,7 @@
 # Iridium-Crypto-Trader
 An cryptocurrency trading bot that uses automated machine learning for decision making to maximize returns.
 
-# Summary
+## Summary
 
 -   The bot achieves a yield of 37.95% over 481 trades in the ETH-BTC
     market over a 60 day window.
