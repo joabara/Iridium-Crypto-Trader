@@ -38,30 +38,30 @@ class Trader(object):
 		self.hist = hist.iloc[::-1]
 
 		coin_hist = self.hist
-		coin_hist["prev"] = coin_hist["usd_price"].shift(periods=1)
-		coin_hist["usd_price2"] = coin_hist["usd_price"].rolling(2, win_type='triang').mean()
-		coin_hist["usd_price3"] = coin_hist["usd_price"].rolling(3, win_type='triang').mean()
-		coin_hist["usd_price4"] = coin_hist["usd_price"].rolling(4, win_type='triang').mean()
-		coin_hist["usd_price5"] = coin_hist["usd_price"].rolling(5, win_type='triang').mean()
-		coin_hist["usd_price6"] = coin_hist["usd_price"].rolling(6, win_type='triang').mean()
-		coin_hist["usd_price7"] = coin_hist["usd_price"].rolling(7, win_type='triang').mean()
-		coin_hist["usd_price8"] = coin_hist["usd_price"].rolling(8, win_type='triang').mean()
-		coin_hist["usd_price9"] = coin_hist["usd_price"].rolling(9, win_type='triang').mean()
-		coin_hist["usd_price10"] = coin_hist["usd_price"].rolling(10, win_type='triang').mean()
-		coin_hist["usd_price11"] = coin_hist["usd_price"].rolling(11, win_type='triang').mean()
-		coin_hist["usd_price12"] = coin_hist["usd_price"].rolling(12, win_type='triang').mean()
-		coin_hist["usd_price13"] = coin_hist["usd_price"].rolling(13, win_type='triang').mean()
-		coin_hist["usd_price14"] = coin_hist["usd_price"].rolling(14, win_type='triang').mean()
-		coin_hist["usd_price15"] = coin_hist["usd_price"].rolling(15, win_type='triang').mean()
-		coin_hist["usd_price16"] = coin_hist["usd_price"].rolling(16, win_type='triang').mean()
-		coin_hist["usd_price17"] = coin_hist["usd_price"].rolling(17, win_type='triang').mean()
-		coin_hist["usd_price18"] = coin_hist["usd_price"].rolling(18, win_type='triang').mean()
-		coin_hist["usd_price19"] = coin_hist["usd_price"].rolling(19, win_type='triang').mean()
-		coin_hist["usd_price20"] = coin_hist["usd_price"].rolling(20, win_type='triang').mean()
-		coin_hist["usd_price24"] = coin_hist["usd_price"].rolling(24, win_type='triang').mean()
-		coin_hist["usd_price72"] = coin_hist["usd_price"].rolling(72, win_type='triang').mean()
-		coin_hist["next"] = coin_hist["usd_price12"].shift(periods=-24)
-		coin_hist["n_bp"] = (coin_hist["next"]/coin_hist["usd_price"] - 1)
+		coin_hist["prev"] = coin_hist["price"].shift(periods=1)
+		coin_hist["price2"] = coin_hist["price"].rolling(2, win_type='triang').mean()
+		coin_hist["price3"] = coin_hist["price"].rolling(3, win_type='triang').mean()
+		coin_hist["price4"] = coin_hist["price"].rolling(4, win_type='triang').mean()
+		coin_hist["price5"] = coin_hist["price"].rolling(5, win_type='triang').mean()
+		coin_hist["price6"] = coin_hist["price"].rolling(6, win_type='triang').mean()
+		coin_hist["price7"] = coin_hist["price"].rolling(7, win_type='triang').mean()
+		coin_hist["price8"] = coin_hist["price"].rolling(8, win_type='triang').mean()
+		coin_hist["price9"] = coin_hist["price"].rolling(9, win_type='triang').mean()
+		coin_hist["price10"] = coin_hist["price"].rolling(10, win_type='triang').mean()
+		coin_hist["price11"] = coin_hist["price"].rolling(11, win_type='triang').mean()
+		coin_hist["price12"] = coin_hist["price"].rolling(12, win_type='triang').mean()
+		coin_hist["price13"] = coin_hist["price"].rolling(13, win_type='triang').mean()
+		coin_hist["price14"] = coin_hist["price"].rolling(14, win_type='triang').mean()
+		coin_hist["price15"] = coin_hist["price"].rolling(15, win_type='triang').mean()
+		coin_hist["price16"] = coin_hist["price"].rolling(16, win_type='triang').mean()
+		coin_hist["price17"] = coin_hist["price"].rolling(17, win_type='triang').mean()
+		coin_hist["price18"] = coin_hist["price"].rolling(18, win_type='triang').mean()
+		coin_hist["price19"] = coin_hist["price"].rolling(19, win_type='triang').mean()
+		coin_hist["price20"] = coin_hist["price"].rolling(20, win_type='triang').mean()
+		coin_hist["price24"] = coin_hist["price"].rolling(24, win_type='triang').mean()
+		coin_hist["price72"] = coin_hist["price"].rolling(72, win_type='triang').mean()
+		coin_hist["next"] = coin_hist["price12"].shift(periods=-24)
+		coin_hist["n_bp"] = (coin_hist["next"]/coin_hist["price"] - 1)
 		coin_hist["sell"] = coin_hist["n_bp"] > np.mean(coin_hist["n_bp"]) + 1*np.std(coin_hist["n_bp"])
 		coin_hist["sell"] = coin_hist["sell"].astype('int32')
 		coin_hist["go"] = coin_hist["n_bp"] < np.mean(coin_hist["n_bp"]) - 1*np.std(coin_hist["n_bp"])
@@ -140,10 +140,10 @@ class Trader(object):
 		import pandas as pd
 		import numpy as np
 		# coin_hist = self.coin_hist
-		ft_col = ['usd_price', 'usd_price2', 'usd_price3', 'usd_price4', 'usd_price5', 'usd_price6',
-		'usd_price7', 'usd_price8', 'usd_price9', 'usd_price10', 'usd_price11', 'usd_price12', 'usd_price13',
-		'usd_price14', 'usd_price15', 'usd_price16', 'usd_price17', 'usd_price18', 'usd_price19', 'usd_price20',
-		'usd_price24', 'usd_price72', self.coin]
+		ft_col = ['price', 'price2', 'price3', 'price4', 'price5', 'price6',
+		'price7', 'price8', 'price9', 'price10', 'price11', 'price12', 'price13',
+		'price14', 'price15', 'price16', 'price17', 'price18', 'price19', 'price20',
+		'price24', 'price72', self.coin]
 
 		X = coin_hist[ft_col]
 		output = coin_hist[ft_col].tail(1)
@@ -259,13 +259,13 @@ class Trader(object):
 		coin_hist["buy_q"] = coin_hist["go_signal"] * coin_hist["conviction_go"] * order_amount
 		coin_hist["sell_q"] = coin_hist["sell_signal"] * coin_hist["conviction_sell"] * order_amount
 		coin_hist["q"] = start + (coin_hist["buy_q"].cumsum() - coin_hist["sell_q"].cumsum())
-		coin_hist["sell_rev"] = coin_hist["sell_q"] * coin_hist["sell_signal"] * coin_hist["usd_price"]
-		coin_hist["buy_cost"] = coin_hist["buy_q"] * coin_hist["go_signal"] * coin_hist["usd_price"]
+		coin_hist["sell_rev"] = coin_hist["sell_q"] * coin_hist["sell_signal"] * coin_hist["price"]
+		coin_hist["buy_cost"] = coin_hist["buy_q"] * coin_hist["go_signal"] * coin_hist["price"]
 		coin_hist["TRev"] = coin_hist["sell_rev"].cumsum()
 		coin_hist["TCost"] = coin_hist["buy_cost"].cumsum()
-		coin_hist["curr_val"] = coin_hist["q"] * coin_hist["usd_price"]
+		coin_hist["curr_val"] = coin_hist["q"] * coin_hist["price"]
 		coin_hist["cash_flow"] = coin_hist["TRev"] - coin_hist["TCost"]
-		coin_hist["hold_val"] = start * coin_hist["usd_price"]
+		coin_hist["hold_val"] = start * coin_hist["price"]
 		coin_hist["pnl"] = (coin_hist["curr_val"] + coin_hist["cash_flow"]) - coin_hist["hold_val"]
 		coin_hist["algo_rt"] = (coin_hist["curr_val"] + coin_hist["cash_flow"])/coin_hist["hold_val"]
 		coin_hist["trade_ind"] = pd.to_numeric(coin_hist["go_signal"] | coin_hist["sell_signal"])
@@ -275,8 +275,8 @@ class Trader(object):
 		import numpy as np
 		coin_hist = self.coin_hist.iloc[::-1]
 		coin_hist.to_csv(('perf/bitcoin_perf.csv'))
-		cmd = coin_hist[['market_tms', 'usd_price', 'p_go', 'p_sell', 'go_signal', 'sell_signal', 'buy_q', 'sell_q', 'buy_cost', 'sell_rev', 'algo_rt']]
-		std = np.std(coin_hist["usd_price"])
+		cmd = coin_hist[['market_tms', 'price', 'p_go', 'p_sell', 'go_signal', 'sell_signal', 'buy_q', 'sell_q', 'buy_cost', 'sell_rev', 'algo_rt']]
+		std = np.std(coin_hist["price"])
 		n = coin_hist["trade_ind"].sum()
 		cmd['ntrades'] = n
 		feed = cmd.head(1).iloc[0]
