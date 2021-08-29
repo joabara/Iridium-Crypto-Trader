@@ -1,5 +1,3 @@
-import pandas as pd
-
 class Trader(object):
 	def __init__(self, name, coin, coin2, cbp_market):
 		# super(ClassName, self).__init__()
@@ -86,11 +84,25 @@ class Trader(object):
 		coin_hist = coin_hist.dropna()
 		coin_hist = coin_hist.sort_values(by='market_tms', ascending=True)
 
+		control = np.random.normal(0, 18 , 10000)
+		control = control.astype(int)
+		control = abs(control)
+
+		self.control = control
 		self.coin_hist = coin_hist
+
+	def get_balance_control(self, balance):
+		n = len(self.control)
+		f = len(self.control[self.control > balance])
+		return f/n
 
 	def learn_and_sim(self, window):
 		i = window
 		coin_hist = self.coin_hist
+		sell_queue = []
+		buy_queue = []
+		balance = 0
+
 		while i < len(coin_hist):
 			x = coin_hist.iloc[i - window : i ,:]
 			y = coin_hist.iloc[i-1:i ,:]
@@ -98,15 +110,39 @@ class Trader(object):
 			output = o[2]
 			go_build = o[0]
 			sell_build = o[1]
-
 			coin_hist["p_go"].iloc[i] =  output['p_go'].values[0]
 			coin_hist["p_sell"].iloc[i] =  output['p_sell'].values[0]
 			coin_hist["o3_go"].iloc[i] =  output['o3_go'].values[0]
 			coin_hist["o3_sell"].iloc[i] =  output['o3_sell'].values[0]
-			coin_hist["conviction_go"].iloc[i] =  output['conviction_go'].values[0]
-			coin_hist["conviction_sell"].iloc[i] =  output['conviction_sell'].values[0]
-			coin_hist["go_signal"].iloc[i] =  output['go_signal'].values[0]
-			coin_hist["sell_signal"].iloc[i] =  output['sell_signal'].values[0]
+
+			if i in sell_queue or i % window*24 == 0:
+				coin_hist["conviction_go"].iloc[i] =  0 # output['conviction_go'].values[0]
+				coin_hist["conviction_sell"].iloc[i] = (1-int(balance>0)*self.get_balance_control(balance)) # int(balance>0)*self.get_balance_control(balance) # output['conviction_sell'].values[0]
+				coin_hist["go_signal"].iloc[i] =  0 # output['go_signal'].values[0]
+				coin_hist["sell_signal"].iloc[i] = 1 #  output['sell_signal'].values[0]
+				if i in sell_queue: sell_queue.remove(i)
+				balance-=1
+
+			elif i in buy_queue:
+				coin_hist["conviction_go"].iloc[i] =  (1-int(balance<0)*self.get_balance_control(balance)) # output['conviction_go'].values[0]
+				coin_hist["conviction_sell"].iloc[i] = 0 # int(balance>0)*self.get_balance_control(balance) # output['conviction_sell'].values[0]
+				coin_hist["go_signal"].iloc[i] =  1 # output['go_signal'].values[0]
+				coin_hist["sell_signal"].iloc[i] = 0 #  output['sell_signal'].values[0]
+				buy_queue.remove(i)
+				balance+=1
+
+			else:
+				coin_hist["conviction_go"].iloc[i] =  output['conviction_go'].values[0]
+				coin_hist["conviction_sell"].iloc[i] = output['conviction_sell'].values[0]
+				coin_hist["go_signal"].iloc[i] =  output['go_signal'].values[0]
+				coin_hist["sell_signal"].iloc[i] =  output['sell_signal'].values[0]
+				if output['go_signal'].values[0] > 0:
+					sell_queue.append(i+(window/2))
+					balance += 1
+				if output['sell_signal'].values[0] > 0:
+					buy_queue.append(i+(window/2))
+					balance -= 1
+
 			i = i + 1
 			pct = round((i / len(self.coin_hist))*100, 2)
 			if i % 79 == 0: print("Simulation is " + str(pct) + '% complete')
@@ -132,7 +168,6 @@ class Trader(object):
 		output['go_signal'].values[0], output['sell_signal'].values[0]]
 
 		self.decision =  d
-
 
 	def model_build_and_run(self, coin_hist):
 		from sklearn.preprocessing import StandardScaler

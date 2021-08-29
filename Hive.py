@@ -12,7 +12,8 @@ class HiveNet(object):
 	def loadBotNet(self, index):
 		i=0
 		self.index = []
-		for x in index:
+		ref = dict({})
+		for x in index['id']:
 			try: 
 				new_bot = Trader('Iridium-'+str(i), x, 'usd', 'Sim')
 				self.hive.append(new_bot)
@@ -20,6 +21,10 @@ class HiveNet(object):
 			except KeyError: print(x + " doesn't work...")
 			except ValueError: print(x + " doesn't work...")
 			i+=1
+
+		for x in index.values:
+			ref[x[0]] = x[1]
+		self.ref = ref
 
 	def learn_performance(self, day_window, inv_amt, pct):
 			for bot in self.hive:
@@ -35,12 +40,14 @@ class HiveNet(object):
 				x = bot.coin_hist['algo_rt'].tail(1).iloc[0]
 				returns.append((x))
 			hive_perf['mean_returns'] = hive_perf.mean(axis=1)
-			self.perf = hive_perf
+			hive_perf = hive_perf.fillna(method='ffill')
+			self.perf = hive_perf.iloc[self.window*24:]
+
 
 	def networkToPerf(self):
 		total_revenue = 0
 		total_cost = 0
-		total_asset_val = 0
+		total_asset_val = 0.0
 		start_asset_val = 0
 		pnl = 0
 
@@ -50,7 +57,7 @@ class HiveNet(object):
 			total_cost += bot.coin_hist['buy_cost'].sum()
 			q = bot.coin_hist['q'].tail(1).values[0]
 			p = bot.coin_hist['price'].tail(1).values[0]
-			total_asset_val += int(q*p)
+			total_asset_val += float(q)*float(p)
 			pnl += bot.coin_hist['pnl'].tail(1).values[0]
 
 		self.total_revenue = total_revenue
@@ -69,13 +76,19 @@ class HiveNet(object):
 			buy = int(bot.decision[6]) == 1
 			sell = int(bot.decision[6] == 1)
 			if buy or sell :
-				print(bot.coin + "-" + bot.coin2 + ": " + str(bot.decision))
+				base_ticker = self.ref[bot.coin]
+				tgt_ticker = self.ref[bot.coin2]
+				print(base_ticker + "-" + tgt_ticker + ": " + str(bot.decision))
 
-index = pd.read_csv('data/00_coinlist.csv')['coin_id'][0:100]
-index = ['ethereum', 'dogecoin', 'binancecoin', 'cardano', 'cosmos', 'chainlink']
+from coin_hist_pull import *
+index = import_coin_list()
+# index = pd.read_csv('data/00_coinlist.csv')['coin_id'][0:100]
+# index = ['ethereum', 'dogecoin', 'binancecoin', 'cardano', 'cosmos', 'chainlink', 'tether']
 network = HiveNet()
-network.loadBotNet(index)
-network.setWindow(28)
-network.learn_performance(28, 1000, 0.10)
-network.learn(28)
-network.process_orders()
+network.loadBotNet(index.iloc[0:30]) # .iloc[0:30]
+network.setWindow(42)
+network.learn_performance(42, 1000, 0.003)
+network.learn(42)
+# network.process_orders()
+network.networkToPerf()
+network.perf.to_csv('hive_perf.csv')

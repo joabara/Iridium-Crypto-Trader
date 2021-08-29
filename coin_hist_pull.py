@@ -11,7 +11,7 @@ def coin_price_hist(coin_id, vs_currency, days, interval):
     y = pd.read_json(x)
     z = pd.DataFrame()
     z['market_tms'] = pd.to_datetime(pd.to_numeric(y.prices.str[0]), unit='ms')
-    z['btc_price'] = y.prices.str[1]
+    z['price'] = y.prices.str[1]
     z['mkt_cap'] = y.market_caps.str[1]
     z['total_volumes'] = y.market_caps.str[1]
     z = z.sort_values(by=['market_tms'], ascending=False)
@@ -65,10 +65,10 @@ def import_coin_list():
     import pandas as pd
     from pycoingecko import CoinGeckoAPI
     cg = CoinGeckoAPI()
-    df = cg.get_coins_list()
+    df = cg.get_coins_markets('usd')
     coin_list = pd.DataFrame(df, columns=['id', 'symbol', 'name'])
-    return (coin_list)
-
+    coin_list['symbol'] = coin_list['symbol'].apply(lambda x: x.upper())
+    return coin_list
 
 def get_coin_hist_tms(coin):
 	hist = pd.read_csv("data/" + coin +  "_btc.csv")
