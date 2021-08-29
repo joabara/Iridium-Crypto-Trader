@@ -145,7 +145,7 @@ class Trader(object):
 
 			i = i + 1
 			pct = round((i / len(self.coin_hist))*100, 2)
-			if i % 79 == 0: print("Simulation is " + str(pct) + '% complete')
+			# if i % 79 == 0: print("Simulation is " + str(pct) + '% complete')
 
 		self.coin_hist = coin_hist
 
@@ -307,23 +307,51 @@ class Trader(object):
 		self.coin_hist = coin_hist
 
 	def summary(self):
-		import numpy as np
-		coin_hist = self.coin_hist.iloc[::-1]
-		coin_hist.to_csv(('perf/bitcoin_perf.csv'))
-		cmd = coin_hist[['market_tms', 'price', 'p_go', 'p_sell', 'go_signal', 'sell_signal', 'buy_q', 'sell_q', 'buy_cost', 'sell_rev', 'algo_rt']]
-		std = np.std(coin_hist["price"])
-		n = coin_hist["trade_ind"].sum()
-		cmd['ntrades'] = n
-		feed = cmd.head(1).iloc[0]
-		print("----------------------------------------------------------------------------------------------")
-		print(self.coin)
-		print("----------------------------------------------------------------------------------------------")
-		print(feed)
-		print(str(n))
-		# push_order(feed)
-		# get_fills_hist('BTC-USD')
-		print("----------------------------------------------------------------------------------------------")
-		print("")
+		total_revenue = 0
+		total_cost = 0
+		total_asset_val = 0.0
+		start_asset_val = 0
+		pnl = 0
+
+		q1 = self.coin_hist['q'].iloc[42*24]
+		p1 = self.coin_hist['price'].iloc[42*24]
+		start_asset_val = float(q1)*float(p1)
+		total_revenue = self.coin_hist['sell_rev'].sum()
+		total_cost = self.coin_hist['buy_cost'].sum()
+		q2 = self.coin_hist['q'].tail(1).values[0]
+		p2 = self.coin_hist['price'].tail(1).values[0]
+		total_asset_val = float(q2)*float(p2)
+		pnl_over_hold = self.coin_hist['pnl'].tail(1).values[0]
+		pnl = total_asset_val-start_asset_val + total_revenue-total_cost
+		a = 100*((pnl/start_asset_val))-1
+		a2 = 100*(self.coin_hist['algo_rt'].tail(1).values[0]-1)
+		print('CASHFLOW')
+		print('--------------------------------------')
+		print('Cash spent (Total Buy Cost): $' + str(round(total_cost,2)))
+		print('Cash earned (Total Sell Revenue): $'+ str(round(total_revenue,2)))
+		print('Net Cashflow: ' + str(round(total_revenue-total_cost, 2)))
+		print('--------------------------------------')
+		print()
+		print('ASSET VALUES: ')
+		print('--------------------------------------')
+		print('Start Quantity: ' + str(round(q1,3)) + ' BTC')
+		print('Starting Asset Value: $' + str(round(start_asset_val, 2)))
+		print('Ending Quantity: ' + str(round(q2,3)) + ' BTC')
+		print('Ending Assets Value: $' + str(round(total_asset_val,2)))
+		print('Net Asset Value: $' + str(round(total_asset_val-start_asset_val,2)))
+		print('--------------------------------------')
+		print()
+		print('TEST RETURNS')
+		print('--------------------------------------')
+		print('PNL: $' + str(round(pnl,2)))
+		print('Return %: ' + str(round(a,2)) + '%')
+		print('--------------------------------------')
+		print()
+		print('TEST VS HOLDOUT')
+		print('--------------------------------------')
+		print('PNL over Hold: $' + str(round(pnl_over_hold,2)))
+		print('Algo Return over Hold%: ' +str(round(a2,2)) + '%')
+		print('--------------------------------------')
 
 	def push_order(feed):
 		buy_cost = round(float(feed[8]),4)
