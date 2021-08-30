@@ -1,100 +1,456 @@
-Algorithmic Trading in Crypto Markets
-================
-Alessandro Joabar
-8/8/2021
+# Iridium Trading Hive
 
-# Summary
+## Executive Summary
 
--   The bot achieves a yield of 37.95% over 481 trades in the ETH-BTC
-    market over a 60 day window.
+* Iridium trading algorithms acheive consistently strong results across diference currencies, like a 20% incremental alpha over holdout.
 
--   It uses a Logistic Regression over the previous 28 days by
-    attempting to predict the overall price change over the next 48
-    hours.
+* Appetite control algorithm significantly reduces risks from market volatility and cashflow issues.
 
--   Google trends helps predicting power by understanding the amount of
-    ‘hype’ that usually can push a bull run.
+* By grouping many bots together into a Hive network we can diversify and smooth performance over time.
 
--   Due to exceptional returns in the simulations, we will launch the
-    bot on a CoinBase sandbox account to validate the model build.
 
-![](readme_files/figure-gfm/pnl-1.png)<!-- -->
+```python
+network.simSummary()
+```
 
-# Performance
+    CASHFLOW
+    --------------------------------------
+    Cash spent (Total Buy Cost): $55596.35
+    Cash earned (Total Sell Revenue): $51244.96
+    Net Cashflow: -4351.4
+    --------------------------------------
+    
+    ASSET VALUES: 
+    --------------------------------------
+    Starting Asset Value: $8959.3
+    Ending Assets Value: $26924.06
+    Net Asset Value: $17964.76
+    --------------------------------------
+    
+    TEST RETURNS
+    --------------------------------------
+    PNL: $13613.36
+    Return %: 51.95%
+    --------------------------------------
+    
+    TEST VS HOLDOUT
+    --------------------------------------
+    PNL over Hold: $3545.95
+    Algo Return over Hold%: -60.42%
+    --------------------------------------
 
-### Before
 
-| Date       | ETH | Value.In.BTC | BTC | Profit.In.BTC |
-|:-----------|----:|-------------:|----:|--------------:|
-| 2021-06-15 |  28 |     1.774333 |   0 |             0 |
+## Data
 
-### After
+### Currency Index & Price
 
-| Date       |      ETH | Value.In.BTC |       BTC | Profit.In.BTC |
-|:-----------|---------:|-------------:|----------:|--------------:|
-| 2021-08-11 | 81.93228 |     5.701425 | -3.019983 |     0.7330047 |
 
-# Appendix
+```python
+from coin_hist_pull import *
 
-## Simulated Balances
+index = import_coin_list()
+index.head()
+```
 
-| Date       |      ETH | Value.In.BTC |        BTC | Profit.In.BTC |
-|:-----------|---------:|-------------:|-----------:|--------------:|
-| 2021-08-11 | 81.93228 |     5.701425 | -3.0199833 |     0.7330047 |
-| 2021-08-10 | 81.93228 |     5.627821 | -3.0199833 |     0.6845545 |
-| 2021-08-09 | 82.25772 |     5.600022 | -3.0422644 |     0.6515209 |
-| 2021-08-08 | 82.58317 |     5.748759 | -3.0645456 |     0.7350841 |
-| 2021-08-07 | 82.58317 |     5.733738 | -3.0645456 |     0.7251559 |
-| 2021-08-06 | 82.58317 |     5.629896 | -3.0645456 |     0.6565219 |
-| 2021-08-05 | 76.05371 |     5.248634 | -2.6138831 |     0.7029030 |
-| 2021-08-04 | 70.33795 |     4.688387 | -2.2195077 |     0.6022641 |
-| 2021-08-03 | 78.31992 |     5.109645 | -2.7414686 |     0.5415923 |
-| 2021-08-02 | 88.22335 |     5.776771 | -3.3920210 |     0.5505278 |
-| 2021-08-01 | 89.10134 |     5.573509 | -3.4574579 |     0.3651599 |
-| 2021-07-31 | 82.16022 |     4.860742 | -3.0353858 |     0.1691393 |
-| 2021-07-30 | 78.56137 |     4.730407 | -2.8234161 |     0.2210300 |
-| 2021-07-29 | 73.90430 |     4.277293 | -2.5525446 |     0.1046103 |
-| 2021-07-28 | 64.13935 |     3.699963 | -1.9899765 |     0.0945947 |
-| 2021-07-27 | 60.15992 |     3.573523 | -1.7608919 |     0.1494198 |
-| 2021-07-26 | 59.03219 |     3.583457 | -1.6921400 |     0.1913499 |
-| 2021-07-25 | 55.62322 |     3.493411 | -1.4843995 |     0.2504743 |
-| 2021-07-24 | 55.62322 |     3.529339 | -1.4843995 |     0.2683163 |
-| 2021-07-23 | 55.86767 |     3.532501 | -1.4997695 |     0.2622993 |
-| 2021-07-22 | 55.90259 |     3.476452 | -1.5019652 |     0.2332321 |
-| 2021-07-21 | 55.90259 |     3.397985 | -1.5019652 |     0.1940671 |
-| 2021-07-20 | 55.90259 |     3.314497 | -1.5019652 |     0.1523957 |
-| 2021-07-19 | 55.90259 |     3.327118 | -1.5019652 |     0.1586949 |
-| 2021-07-18 | 54.46242 |     3.324984 | -1.4156422 |     0.1998788 |
-| 2021-07-17 | 54.39958 |     3.252448 | -1.4118724 |     0.1665084 |
-| 2021-07-16 | 52.96347 |     3.182831 | -1.3259054 |     0.1741473 |
-| 2021-07-15 | 49.55861 |     2.998039 | -1.1210112 |     0.1832084 |
-| 2021-07-14 | 48.10285 |     2.885395 | -1.0332735 |     0.1725730 |
-| 2021-07-13 | 48.10285 |     2.923551 | -1.0332735 |     0.1885191 |
-| 2021-07-12 | 48.10285 |     2.998016 | -1.0332735 |     0.2196388 |
-| 2021-07-11 | 48.10285 |     3.025104 | -1.0332735 |     0.2309593 |
-| 2021-07-10 | 48.10285 |     3.026371 | -1.0332735 |     0.2314889 |
-| 2021-07-09 | 48.10285 |     3.084770 | -1.0332735 |     0.2558948 |
-| 2021-07-08 | 48.75667 |     3.246161 | -1.0773252 |     0.3052186 |
-| 2021-07-07 | 56.78776 |     3.876839 | -1.6243378 |     0.3408791 |
-| 2021-07-06 | 66.54244 |     4.466156 | -2.2878410 |     0.2982508 |
-| 2021-07-05 | 69.29946 |     4.571208 | -2.4734411 |     0.2508157 |
-| 2021-07-04 | 69.48967 |     4.540816 | -2.4859772 |     0.2251731 |
-| 2021-07-03 | 69.48967 |     4.442631 | -2.4859772 |     0.1665506 |
-| 2021-07-02 | 69.48967 |     4.343795 | -2.4859772 |     0.1075396 |
-| 2021-07-01 | 69.35694 |     4.416377 | -2.4775417 |     0.1558816 |
-| 2021-06-30 | 67.64027 |     4.181603 | -2.3714472 |     0.0798129 |
-| 2021-06-29 | 60.19597 |     3.676715 | -1.9176594 |     0.0489013 |
-| 2021-06-28 | 51.71079 |     3.056338 | -1.4041195 |    -0.0006448 |
-| 2021-06-27 | 45.18348 |     2.534922 | -1.0291190 |    -0.0650814 |
-| 2021-06-26 | 44.84815 |     2.549372 | -1.0104763 |    -0.0527510 |
-| 2021-06-25 | 44.84815 |     2.550626 | -1.0104763 |    -0.0522800 |
-| 2021-06-24 | 44.84815 |     2.607561 | -1.0104763 |    -0.0308913 |
-| 2021-06-23 | 44.84815 |     2.634501 | -1.0104763 |    -0.0207705 |
-| 2021-06-22 | 40.22536 |     2.384336 | -0.7382190 |    -0.0144794 |
-| 2021-06-21 | 31.89176 |     1.940820 | -0.2388305 |    -0.0041956 |
-| 2021-06-20 | 28.00000 |     1.730763 |  0.0000000 |     0.0000000 |
-| 2021-06-19 | 28.00000 |     1.743785 |  0.0000000 |     0.0000000 |
-| 2021-06-18 | 28.00000 |     1.726512 |  0.0000000 |     0.0000000 |
-| 2021-06-17 | 28.00000 |     1.737508 |  0.0000000 |     0.0000000 |
-| 2021-06-16 | 28.00000 |     1.755601 |  0.0000000 |     0.0000000 |
-| 2021-06-15 | 28.00000 |     1.774333 |  0.0000000 |     0.0000000 |
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>id</th>
+      <th>symbol</th>
+      <th>name</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>bitcoin</td>
+      <td>BTC</td>
+      <td>Bitcoin</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>ethereum</td>
+      <td>ETH</td>
+      <td>Ethereum</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>cardano</td>
+      <td>ADA</td>
+      <td>Cardano</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>binancecoin</td>
+      <td>BNB</td>
+      <td>Binance Coin</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>tether</td>
+      <td>USDT</td>
+      <td>Tether</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+prices = coin_price_hist('bitcoin', 'usd', 85, 'hourly')
+prices.head()
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>market_tms</th>
+      <th>price</th>
+      <th>mkt_cap</th>
+      <th>total_volumes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2042</th>
+      <td>2021-08-29 22:43:32.000</td>
+      <td>49336.409681</td>
+      <td>9.284308e+11</td>
+      <td>9.284308e+11</td>
+    </tr>
+    <tr>
+      <th>2041</th>
+      <td>2021-08-29 22:01:29.143</td>
+      <td>48832.243576</td>
+      <td>9.181020e+11</td>
+      <td>9.181020e+11</td>
+    </tr>
+    <tr>
+      <th>2040</th>
+      <td>2021-08-29 21:00:58.123</td>
+      <td>48940.611916</td>
+      <td>9.194238e+11</td>
+      <td>9.194238e+11</td>
+    </tr>
+    <tr>
+      <th>2039</th>
+      <td>2021-08-29 20:00:56.386</td>
+      <td>48837.541540</td>
+      <td>9.181159e+11</td>
+      <td>9.181159e+11</td>
+    </tr>
+    <tr>
+      <th>2038</th>
+      <td>2021-08-29 19:01:27.321</td>
+      <td>48786.567950</td>
+      <td>9.175081e+11</td>
+      <td>9.175081e+11</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+### Google Trends
+
+
+```python
+from g_trends import *
+btc_searches = g_trend_pull(['bitcoin'])
+btc_searches.head()
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>bitcoin</th>
+      <th>isPartial</th>
+    </tr>
+    <tr>
+      <th>date</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2021-05-29</th>
+      <td>80</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>2021-05-30</th>
+      <td>76</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>2021-05-31</th>
+      <td>74</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>2021-06-01</th>
+      <td>68</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>2021-06-02</th>
+      <td>69</td>
+      <td>False</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+## Methodology
+
+### Individual Bot Strategy
+
+A trading bot is defined by the two currencies it's going to trade. A BTC/USD bot will be a bot that will buy BTC in USD based on the prices of BTC. This means the bot can also trade USD/BTC. Let's init a bot that starts with 10,000 USD worth of Bitcoin and trades ~250 USD at a time.
+
+
+```python
+from Trader import *
+inv_amt = 10000
+pct = 0.025
+bot = Trader('Iridium | BTC/USD', 'bitcoin', 'usd', 'CoinBasePro')
+unit_cost = bot.hist['price'].iloc[42*24]
+order_amount = inv_amt/unit_cost
+bot.learn_and_sim(42*24)
+```
+
+#### Trading Strategy
+
+Every hour, the bot looks at the previous 42 days and identifies what the best opportunities to buy and sell would have been. This will set up the training data for the machine learning algorithm later.
+
+Specifically, there are two labels that the bot learns for:
+
+* Buy Ind: If the price change increases by more than 1 standard deviation over the next 48 hours
+* Sell Ind: If the price change decreases by more than 1 standard deviation over the next 48 hours
+
+The features can be simplified to:
+* Prices and moving averages of prices (momentum)
+* Google Trends data (how much public interest is in a currency)
+
+The training data will be the last 42 days minus the current hour, and then split on a 75/25 size. The current hour's data will then be run through the model build and it will return a decision: buy, sell, or do nothing.
+
+#### Hedging Risk with 'Appetite Control'
+
+In early simulations, the bot was exceptionally profitable. It was very good at predicting price rises and subsequently putting in buy orders. However, after a three-week bull run, the bot would be extremely over-leveraged since it had been frantically buying as much as possible. Eventually, a market crash occurred, and the bot's performance went from ~ +80% to -30% in a day.  
+
+To illustrate, you have 100,000 USD and 1 Bitcoin. After 3 weeks of price continuing to go up, you now have $0 and 3 Bitcoin. On paper, that's pretty good - you might have doubled your total asset value. But next week, the price of Bitcoin goes down 50 percent. You still have 3 Bitcoin, but now you have less value overall from when you started.
+
+The way we fix this aggression is to create an 'appetite curve' to make sure the initial balance of currencies remains roughly the same. The more the bot buys, the less likely it is to buy more. The inverse is also true.
+
+To illustrate:
+
+
+```python
+import numpy as np
+import seaborn as sns
+import warnings
+warnings.filterwarnings('ignore')
+control = np.random.normal(0, 25, 10000)
+control = abs(control)
+sns.distplot(control).set(title ="Appetite Control", xlabel="Off-Balance by N Trades", ylabel = "Likelihood To Continue Order")
+```
+
+
+
+
+    [Text(0.5, 1.0, 'Appetite Control'),
+     Text(0.5, 0, 'Off-Balance by N Trades'),
+     Text(0, 0.5, 'Likelihood To Continue Order')]
+
+
+
+
+    
+![png](output_13_1.png)
+    
+
+
+So when the bot continues to be aggressively buying or selling, the actual amount it is allowed to trade is restricted until the balance sheet is in equilibrium.
+
+#### Results From Individual Trader
+
+After a couple weeks of trading, the bot's performance in terms of PNL is usually profitable (depending on the currency). Most of the value comes from increased asset size while maintaining a small deficit in cashflow.
+
+Using the example from before, if the bot starts with 100,000 USD and 1 Bitcoin, the ending balance sheet might look like 87,000 USD and 4 Bitcoin. So in essence, you would have bought 3 Bitcoin for 13,000 USD, which is a pretty great deal.
+
+Below, is a the simulation result from a BTC/USD trading bot.
+
+
+```python
+bot.hist_to_pnl(order_amount, order_amount*pct)
+bot.summary()
+```
+
+    CASHFLOW
+    --------------------------------------
+    Cash spent (Total Buy Cost): $54198.3
+    Cash earned (Total Sell Revenue): $43160.97
+    Net Cashflow: -11037.34
+    --------------------------------------
+    
+    ASSET VALUES: 
+    --------------------------------------
+    Start Quantity: 0.308 BTC
+    Starting Asset Value: $9175.07
+    Ending Quantity: 0.584 BTC
+    Ending Assets Value: $28814.15
+    Net Asset Value: $19639.08
+    --------------------------------------
+    
+    TEST RETURNS
+    --------------------------------------
+    PNL: $8601.75
+    Return %: 92.75%
+    --------------------------------------
+    
+    TEST VS HOLDOUT
+    --------------------------------------
+    PNL over Hold: $2215.58
+    Algo Return over Hold%: 14.24%
+    --------------------------------------
+
+
+What this readout shows is that the BTC/USD bot was able to accumulate around 17,000 USD worth of BTC by making some smart trades and only spending a net of 9,300 USD. The bot, on paper, was able to double its asset value by adding 8,500 USD in value.
+
+However, this would not be a true performance readout. It is important to note that during this time period, the price of BTC/USD did increase quite drastically. We need to able to compare the performance of the strategy vs the holdout (i.e if we didn't do anything).
+
+In conclusion, the algorithm was able to create ~ 2,000 USD in net value, an incremental improvement rate of about 20%.
+
+### Hive Network
+
+
+#### Three's a Party
+As we mentioned before, the bots usually have a pretty good performance, but in some cases they are quite bad and are designed to focus on one market at time. We could have multiple bots trading in different markets, but there is a lot more value in storing them in a network. This accomplishes two important goals:
+
+* Many bots trading differnt markets allows us to diversify investments. If one bot fails spectacularly it won't affect the overall performance.
+
+* By putting all the bots in a network, we open up future opportunities to simulate collaboration between bots and improve computing performance.
+
+We're going to take a sample of the top 10 coins in terms of market cap and we're going to create a network of bots to simulate orders. The simulation process takes a long time, but in production it won't be a problem since we are running only one record (the current hour) through the model and processing any orders that need to go through.
+
+We will give each bot around 1,000 USD and a standard trade size of 2.5%, or 25 USD.
+
+
+```python
+from Hive import *
+index['err'] = index['id'].apply(lambda x: 1 if '-' in x else 0)
+index = index[index['err']==0]
+```
+
+
+```python
+network = HiveNet()
+network.loadBotNet(index.iloc[0:10]) 
+network.setWindow(42)
+```
+
+
+```python
+network.learn_performance(42, 1000, 0.025)
+network.networkToPerf()
+```
+
+#### Results
+Now that we have run the network simulation, we can aggregate the performance across all bots in the network and view their results.
+
+
+```python
+network.simSummary()
+```
+
+    CASHFLOW
+    --------------------------------------
+    Cash spent (Total Buy Cost): $55596.35
+    Cash earned (Total Sell Revenue): $51244.96
+    Net Cashflow: -4351.4
+    --------------------------------------
+    
+    ASSET VALUES: 
+    --------------------------------------
+    Starting Asset Value: $8959.3
+    Ending Assets Value: $26924.06
+    Net Asset Value: $17964.76
+    --------------------------------------
+    
+    TEST RETURNS
+    --------------------------------------
+    PNL: $13613.36
+    Return %: 51.95%
+    --------------------------------------
+    
+    TEST VS HOLDOUT
+    --------------------------------------
+    PNL over Hold: $3545.95
+    Algo Return over Hold%: -60.42%
+    --------------------------------------
+
+
+## Internal Collaboration (Next Steps)
+
+While the trading algorithm is extremely effective on its own, it would be interesting to see if there are opportunities for collaborations between bots. Using a tool like `networkx` could help create links between bots.
+
+One potential implementation would be to use an order correlation matrix to create links between bots. It would be interesting to see if some bots have high correlations of orders with each other. If that would be the case, we could save a lot of completxity by having only a few bots make decisions and others following.
