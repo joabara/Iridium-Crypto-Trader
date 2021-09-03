@@ -11,7 +11,7 @@
 
 #### Bitcoin Trading Bot Strategy Over Time
 ![](Decisions.gif)
-
+Orange for buying decision, blue for sell decision
 
 
 ```python
