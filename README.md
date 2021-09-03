@@ -8,7 +8,10 @@
 
 * By grouping many bots together into a Hive network we can diversify and smooth performance over time.
 
+
+#### Bitcoin Trading Bot Strategy Over Time
 ![](Decisions.gif)
+
 
 
 ```python
