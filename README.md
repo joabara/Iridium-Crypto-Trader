@@ -8,7 +8,7 @@
 
 * By grouping many bots together into a Hive network we can diversify and smooth performance over time.
 
-![](Decicions.gif)
+![](Decisions.gif)
 
 
 ```python
