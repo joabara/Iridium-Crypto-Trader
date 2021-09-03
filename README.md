@@ -13,7 +13,7 @@
 ![](Decisions.gif)
 
 
-Orange for buying decision, blue for sell decision
+*Orange for buying decision, blue for sell decision*
 
 
 ```python
