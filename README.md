@@ -9,7 +9,7 @@
 * By grouping many bots together into a Hive network we can diversify and smooth performance over time.
 
 
-[]!(Decisions.gif)
+![](Decisions.gif)
 
 *Orange leaves represent buying decisions, blue represents selling decisions*
 
