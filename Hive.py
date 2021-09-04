@@ -10,7 +10,7 @@ class HiveNet(object):
 		self.window = day_window
 
 	def loadBotNet(self, index):
-		i=0
+		import time
 		self.index = []
 		ref = dict({})
 		for x in index['id']:
@@ -21,28 +21,17 @@ class HiveNet(object):
 				self.index.append(new_bot.coin)
 			except KeyError: pass # print(x + " doesn't work...")
 			except ValueError: pass # print(x + " doesn't work...")
-			i+=1
 
 		for x in index.values:
 			ref[x[0]] = x[1]
 		self.ref = ref
 
 	def learn_performance(self, day_window, inv_amt, pct):
-			for bot in self.hive:
-				# print(bot.coin + "-" + bot.coin2)
-				unit_cost = bot.hist['price'].iloc[day_window*24]
-				order_amount = inv_amt/unit_cost
-				bot.learn_and_sim(day_window*24)
-				bot.hist_to_pnl(order_amount, order_amount*pct)
-			hive_perf = pd.DataFrame()
-			returns = []
-			for bot in self.hive:
-				hive_perf[bot.coin] = bot.coin_hist['algo_rt']
-				x = bot.coin_hist['algo_rt'].tail(1).iloc[0]
-				returns.append((x))
-			hive_perf['mean_returns'] = hive_perf.mean(axis=1)
-			hive_perf = hive_perf.fillna(method='ffill')
-			self.perf = hive_perf.iloc[self.window*24:]
+		for bot in self.hive:
+			unit_cost = bot.hist['price'].iloc[day_window*24]
+			order_amount = inv_amt/unit_cost
+			bot.learn_and_sim(day_window*24)
+			bot.hist_to_pnl(order_amount, order_amount*pct)
 
 
 	def networkToPerf(self):
@@ -88,9 +77,9 @@ class HiveNet(object):
 				tgt_ticker = self.ref[bot.coin2]
 				print(base_ticker + "-" + tgt_ticker + ": " + str(bot.decision))
 
-	def simSummary():
-		a = self.pnl/self.start_asset_val
-		a2 = self.pnl2/self.start_asset_val
+	def simSummary(self):
+		a = 100*(self.pnl/self.start_asset_val)
+		a2 = 100*(self.pnl2/self.start_asset_val)
 		print('CASHFLOW')
 		print('--------------------------------------')
 		print('Cash spent (Total Buy Cost): $' + str(round(self.total_cost,2)))
@@ -100,9 +89,7 @@ class HiveNet(object):
 		print()
 		print('ASSET VALUES: ')
 		print('--------------------------------------')
-		print('Start Quantity: ' + str(round(q1,3)) + ' BTC')
 		print('Starting Asset Value: $' + str(round(self.start_asset_val, 2)))
-		print('Ending Quantity: ' + str(round(q2,3)) + ' BTC')
 		print('Ending Assets Value: $' + str(round(self.total_asset_val,2)))
 		print('Net Asset Value: $' + str(round(self.total_asset_val-self.start_asset_val,2)))
 		print('--------------------------------------')

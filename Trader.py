@@ -1,64 +1,43 @@
 class Trader(object):
-	"""
-	This class represents the node-level structure in the bot network. Each bot is responsible for trading in a specific market.
-	Each bot is held accountable for maintaining their own record history. Once they have made decsions, they will send their 
-	decisions to the greater HiveNet, who will process their order.
-	"""
-	def __init__(self, name, coin, coin2, cbp_market, inv_amt, a, control):
-		import pandas as pd
+	def __init__(self, name, coin, coin2, cbp_market):
 		self.coin = coin # bitcoin
 		self.coin2 = coin2 # usd
-		self.init_price = coin_price_hist(self.coin, self.coin2, 1, 'hourly')[['market_tms', 'price']].sort_values(by='market_tms', ascending=False).head(1)['price'].values[0]
 		self.market = cbp_market
 		self.name = name
-		self.balance = 0
-		self.inv_amt = inv_amt
-		self.a = a
 
-		# Import queue
-		try:
-			queue = pd.read_csv('queue/'+self.name+'_queue.csv')
-			self.buy_queue = queue[queue['order']=='buy']['market_tms'].values
-			self.sell_queue = queue[queue['order']=='sell']['market_tms'].values
-		except FileNotFoundError:
-			print('FnF: Empty Queue')
-			self.sell_queue = []
-			self.buy_queue = []
-		except EOFError:
-			print('EOF: Empty Queue')
-			self.sell_queue = []
-			self.buy_queue = []
-
-		# Import previous decisions, init if no previous decisions
-		try: self.decisions = pd.read_csv('orders/'+self.name+'_decisions.csv')
-		except FileNotFoundError:
-			print('FnF: No previous decisions')
-			self.decisions = pd.DataFrame(columns=['market_tms', 'price', 'conviction_go', 'conviction_sell', 'go_signal', 'sell_signal', 'coin', 'coin2', 'order_amount'])
-		except EOFError:
-			print('EOF: Empty Decision')
-			self.decisions = pd.DataFrame(columns=['market_tms', 'price', 'conviction_go', 'conviction_sell', 'go_signal', 'sell_signal', 'coin', 'coin2', 'order_amount'])
-		except Exception:
-			self.decisions = pd.DataFrame(columns=['market_tms', 'price', 'conviction_go', 'conviction_sell', 'go_signal', 'sell_signal', 'coin', 'coin2', 'order_amount'])
-
-		# Set control balance and orders dataframe
-		self.control = control
-		self.orders = pd.DataFrame(columns=['market_tms', 'price', 'conviction_go', 'conviction_sell', 'go_signal', 'sell_signal', 'coin', 'coin2', 'order_amount'])
-
-		import warnings
-		warnings.filterwarnings('ignore')
-
-	def refresh_data(self):
 		import pandas as pd
 		import numpy as np
 		import os
+		from sklearn.model_selection import train_test_split
+		from sklearn.linear_model import LogisticRegression
+		from sklearn.svm import SVR
+		from sklearn.preprocessing import StandardScaler
+		from sklearn.utils import check_random_state
+		from sklearn.decomposition import PCA
+		from sklearn.linear_model import LogisticRegression
+		from sklearn.tree import DecisionTreeRegressor
+		from sklearn.ensemble import RandomForestRegressor
+		from sklearn.naive_bayes import GaussianNB
+		from sklearn.linear_model import Perceptron
+		from sklearn.neural_network import MLPRegressor
+		from sklearn import metrics
+		from sklearn.linear_model import SGDRegressor
+		from sklearn.ensemble import GradientBoostingRegressor
+		from sklearn.linear_model import SGDClassifier
+		from sklearn.ensemble import GradientBoostingClassifier
+		from coin_hist_pull import coin_price_hist
+		from g_trends import g_trend_pull
+		from datetime import datetime
 		import warnings
 		warnings.filterwarnings('ignore')
+
 
 		hist = coin_price_hist(self.coin, self.coin2, 85, 'hourly')
 		self.hist = hist.iloc[::-1]
 
-		# Create price momentum metrics
 		coin_hist = self.hist
+		coin_hist['market_tms'] = pd.to_datetime(coin_hist['market_tms'])
+		coin_hist['pt'] = coin_hist['market_tms'].apply(lambda x: x.replace(microsecond=0, second=0, minute=0))
 		coin_hist["prev"] = coin_hist["price"].shift(periods=1)
 		coin_hist["price2"] = coin_hist["price"].rolling(2, win_type='triang').mean()
 		coin_hist["price3"] = coin_hist["price"].rolling(3, win_type='triang').mean()
@@ -81,16 +60,12 @@ class Trader(object):
 		coin_hist["price20"] = coin_hist["price"].rolling(20, win_type='triang').mean()
 		coin_hist["price24"] = coin_hist["price"].rolling(24, win_type='triang').mean()
 		coin_hist["price72"] = coin_hist["price"].rolling(72, win_type='triang').mean()
-
-		# Create output variables (i.e will price go up)
-		coin_hist["next"] = coin_hist["price12"].shift(periods=-24)
+		coin_hist["next"] = coin_hist["price12"].shift(periods=-1)
 		coin_hist["n_bp"] = (coin_hist["next"]/coin_hist["price"] - 1)
 		coin_hist["sell"] = coin_hist["n_bp"] > np.mean(coin_hist["n_bp"]) + 1*np.std(coin_hist["n_bp"])
 		coin_hist["sell"] = coin_hist["sell"].astype('int32')
 		coin_hist["go"] = coin_hist["n_bp"] < np.mean(coin_hist["n_bp"]) - 1*np.std(coin_hist["n_bp"])
 		coin_hist["go"] = coin_hist["go"].astype('int32')
-
-		# Init model outputs
 		coin_hist["p_go"] = 0
 		coin_hist["p_sell"] = 0
 		coin_hist["o3_go"] =  0
@@ -100,7 +75,8 @@ class Trader(object):
 		coin_hist["sell_signal"] =  0
 		coin_hist["go_signal"] = 0
 
-		# Import google trends data from pytrends API
+
+
 		g_trends = pd.DataFrame(g_trend_pull([self.coin]))
 		coin_hist['dt'] = pd.to_datetime(coin_hist['market_tms'])
 		coin_hist['dt'] = coin_hist['dt'].apply(lambda x: x.strftime("%Y-%m-%d"))
@@ -108,89 +84,106 @@ class Trader(object):
 		g_trends['dt'] = g_trends['dt'].apply(lambda x: x.strftime("%Y-%m-%d"))
 		coin_hist = pd.merge(coin_hist, g_trends, how="left", on=["dt"])
 
-		# NA cleaning
 		coin_hist = coin_hist.fillna(method='ffill')
 		coin_hist = coin_hist.dropna()
 		coin_hist = coin_hist.sort_values(by='market_tms', ascending=True)
 
+		control = np.random.normal(0, 5, 10000)
+		control = control.astype(int)
+		control = abs(control)
+
+		self.control = control
 		self.coin_hist = coin_hist
 
 	def get_balance_control(self, balance):
+		balance = abs(balance)
 		n = len(self.control)
-		f = len(self.control[self.control > balance])
+		f = len(self.control[self.control <= balance])
 		return f/n
 
-	def learn(self, window):
+	def learn_and_sim(self, window):
 		import pandas as pd
+		i = window
 		coin_hist = self.coin_hist
-		i = len(coin_hist)-1
-		x = coin_hist.iloc[i - window : i ,:]
-		y = coin_hist.iloc[i-1:i ,:]
-		o = self.model_build_and_run(x)
-		output = o[2]
-		go_build = o[0]
-		sell_build = o[1]
+		sell_queue = []
+		buy_queue = []
+		balance = 0
+		lowest_t1 = coin_hist['pt'].iloc[window+1]
+		highest_t1 = coin_hist['pt'].iloc[len(coin_hist['pt'])-1]
 
-		coin_hist["p_go"].iloc[i] =  output['p_go'].values[0]
-		coin_hist["p_sell"].iloc[i] =  output['p_sell'].values[0]
-		coin_hist["o3_go"].iloc[i] =  output['o3_go'].values[0]
-		coin_hist["o3_sell"].iloc[i] =  output['o3_sell'].values[0]
-		now = coin_hist['market_tms'].iloc[i].replace(microsecond=0, second=0, minute=0)
+		i = 0
+		for day in coin_hist['pt']:
+			from datetime import datetime
+			t1 = day
+			t0 = t1-pd.Timedelta(days=window)
+			t0 = t0.replace(microsecond=0, second=0, minute=0)
 
-		if now in self.sell_queue or i % window*24 == 0:
-			coin_hist["conviction_go"].iloc[i] =  0 # output['conviction_go'].values[0]
-			coin_hist["conviction_sell"].iloc[i] = (1-int(self.balance>0)*self.get_balance_control(self.balance)) 
-			coin_hist["go_signal"].iloc[i] = 0 # output['go_signal'].values[0]
-			coin_hist["sell_signal"].iloc[i] = 1 #  output['sell_signal'].values[0]
-			if now in self.sell_queue: self.sell_queue.remove(now)
-			self.balance-=1
+			if lowest_t1 <= t1 < highest_t1:
+				x = coin_hist[((coin_hist['pt'] >= t0) & (coin_hist['pt'] < t1))]
+				y = coin_hist[coin_hist['pt'] == t1]
+				o = self.model_build_and_run(x)
+				output = o[2]
+				self.go_build = o[0]
+				self.sell_build = o[1]
+				coin_hist["p_go"].iloc[i] =  output['p_go'].values[0]
+				coin_hist["p_sell"].iloc[i] =  output['p_sell'].values[0]
+				coin_hist["o3_go"].iloc[i] =  output['o3_go'].values[0]
+				coin_hist["o3_sell"].iloc[i] =  output['o3_sell'].values[0]
 
-		elif now in self.buy_queue:
-			coin_hist["conviction_go"].iloc[i] = (1-int(self.balance<0)*self.get_balance_control(self.balance)) # output['conviction_go'].values[0]
-			coin_hist["conviction_sell"].iloc[i] = 0 # int(self.balance>0)*self.get_self.balance_control(self.balance) # output['conviction_sell'].values[0]
-			coin_hist["go_signal"].iloc[i] = 1 # output['go_signal'].values[0]
-			coin_hist["sell_signal"].iloc[i] = 0 #  output['sell_signal'].values[0]
-			self.buy_queue.remove(now)
-			self.balance+=1
+				queue_tm = t1 +  pd.Timedelta(hours=6)
 
-		else:
-			coin_hist["conviction_go"].iloc[i] = output['conviction_go'].values[0]
-			coin_hist["conviction_sell"].iloc[i] =output['conviction_sell'].values[0]
-			coin_hist["go_signal"].iloc[i] = output['go_signal'].values[0]
-			coin_hist["sell_signal"].iloc[i] = output['sell_signal'].values[0]
-			future = (now+pd.Timedelta(days=window/2)).replace(microsecond=0, second=0, minute=0)
+				if day in sell_queue:
+					coin_hist["conviction_go"].iloc[i] =  0 
+					coin_hist["conviction_sell"].iloc[i] = 1 
+					coin_hist["go_signal"].iloc[i] =  0 
+					coin_hist["sell_signal"].iloc[i] = 1 
+					sell_queue.remove(day)
+					balance-=1
 
-			if output['go_signal'].values[0] > 0:
-				self.sell_queue.append(future)
-				self.balance += 1
-			if output['sell_signal'].values[0] > 0:
-				self.buy_queue.append(future)
-				self.balance -= 1
+				elif day in buy_queue:
+					coin_hist["conviction_go"].iloc[i] =  1 
+					coin_hist["conviction_sell"].iloc[i] = 0 
+					coin_hist["go_signal"].iloc[i] =  1 
+					coin_hist["sell_signal"].iloc[i] = 0 
+					buy_queue.remove(day)
+					balance+=1
+
+				else:
+					coin_hist["conviction_go"].iloc[i] =  output['conviction_go'].values[0]-int(balance>0)*self.get_balance_control(balance)
+					coin_hist["conviction_sell"].iloc[i] = output['conviction_sell'].values[0]-int(balance<0)*self.get_balance_control(balance)
+					coin_hist["go_signal"].iloc[i] =  output['go_signal'].values[0]
+					coin_hist["sell_signal"].iloc[i] =  output['sell_signal'].values[0]
+					if output['go_signal'].values[0] > 0:
+						sell_queue.append(queue_tm)
+						balance += 1
+					if output['sell_signal'].values[0] > 0:
+						buy_queue.append(queue_tm)
+						balance -= 1
+			i += 1
+			pct = round((i / len(self.coin_hist))*100, 2)
+			# if i % 79 == 0: print(pct)
 
 		self.coin_hist = coin_hist
 
-		# Current decision
-		self.decision = coin_hist.tail(1)[['market_tms', 'price', 'conviction_go', 'conviction_sell', 'go_signal', 'sell_signal']]
-		self.decision['coin'] = self.coin
-		self.decision['coin2'] = self.coin2
-		self.decision['order_amount'] = (self.inv_amt/self.decision['price'].values[0])*self.a
+	def learn(self, window):
+		i = window
+		coin_hist = self.coin_hist
+		daysago = len(coin_hist)-window-1
+		yesterday = len(coin_hist)-1
+		today = len(coin_hist)-1
 
-		# Concat previous decisions
-		self.decisions = pd.concat([self.decisions, self.decision], axis=0)
-		self.decisions.to_csv('orders/'+self.name+'_decisions.csv')
+		x = coin_hist.iloc[daysago : yesterday ,:]
+		y = coin_hist.iloc[today ,:]
+		o = self.model_build_and_run(x)
+		output = o[2]
+		self.go_build = o[0]
+		self.sell_build = o[1]
 
-		# Filter out pre-orders
-		if self.decision['go_signal'].values[0] == 1 or self.decision['sell_signal'].values[0] == 1:
-			self.orders = pd.concat([self.orders, self.decision], axis=0)
+		d =  [output['p_go'].values[0], output['p_sell'].values[0], output['o3_go'].values[0], 
+		output['o3_sell'].values[0], output['conviction_go'].values[0], output['conviction_sell'].values[0], 
+		output['go_signal'].values[0], output['sell_signal'].values[0]]
 
-
-		# Save orders to queue
-		buy = pd.DataFrame(self.buy_queue, columns=['market_tms'])
-		buy['order'] = 'buy'
-		sell = pd.DataFrame(self.sell_queue, columns=['market_tms'])
-		sell['order'] = 'sell'
-		self.queue = pd.concat([buy, sell], axis=0)
-		self.queue.to_csv('queue/'+self.name+'_queue.csv')
+		self.decision =  d
 
 
 	def model_build_and_run(self, coin_hist):
@@ -198,19 +191,16 @@ class Trader(object):
 		from sklearn.model_selection import train_test_split
 		import pandas as pd
 		import numpy as np
-
-		# Feature columns
+		# coin_hist = self.coin_hist
 		ft_col = ['price', 'price2', 'price3', 'price4', 'price5', 'price6',
 		'price7', 'price8', 'price9', 'price10', 'price11', 'price12', 'price13',
 		'price14', 'price15', 'price16', 'price17', 'price18', 'price19', 'price20',
 		'price24', 'price72', self.coin]
 
-		# Set up train pop and test pop
 		X = coin_hist[ft_col]
 		output = coin_hist[ft_col].tail(1)
 		coin_hist.drop(coin_hist.tail(1).index, inplace=True)
 
-		# Scale data to help fit model
 		scaler = StandardScaler().fit(X)
 		red = scaler.transform(X)
 		red = pd.DataFrame(red)
@@ -223,7 +213,7 @@ class Trader(object):
 				red = red.rename(columns={col_name: new_name})
 		red.drop(red.tail(1).index, inplace=True)
 
-		# Go - learning on buy indicators
+		# Go
 		red['go'] = np.array(coin_hist['go'])
 		x = red[red.columns[red.columns != 'go']]
 		X_train, X_test, y_train, y_test = train_test_split(x, red['go'], test_size=0.25, random_state=0)
@@ -233,7 +223,7 @@ class Trader(object):
 		o3_go = pd.DataFrame(go_build.predict_proba(y)).iloc[:,0]
 		o3_go = np.array(o3_go)
 
-		# Sell - learning on sell indicators
+		# Sell
 		red = red.drop(columns=['go'])
 		red['sell'] = np.array(coin_hist['sell'])
 		x = red[red.columns[red.columns != 'sell']]
@@ -243,7 +233,6 @@ class Trader(object):
 		p_sell = np.array(p_sell)
 		o3_sell = pd.DataFrame(sell_build.predict_proba(y)).iloc[:,0]
 		o3_sell = np.array(o3_sell)
-
 
 		pgo_mean = np.mean(p_go)
 		pgo_sd = np.std(p_go)
@@ -262,9 +251,15 @@ class Trader(object):
 		return go_build, sell_build, output
 
 	def autoMachineLearning(self, X_train, X_test, y_train, y_test):
-
+		from sklearn.linear_model import LogisticRegression
+		from sklearn.svm import SVC, LinearSVC
+		from sklearn.neighbors import KNeighborsClassifier
 		from sklearn.tree import DecisionTreeClassifier
 		from sklearn.ensemble import RandomForestClassifier
+		from sklearn.naive_bayes import GaussianNB
+		from sklearn.linear_model import Perceptron
+		from sklearn.neural_network import MLPClassifier
+		from sklearn.linear_model import SGDClassifier
 		from sklearn.ensemble import GradientBoostingClassifier
 		from sklearn.model_selection import train_test_split
 		from sklearn import metrics
@@ -306,43 +301,47 @@ class Trader(object):
 		return max_build
 
 	def build_models_on_train(self, model, X_train,  y_train):
-	    classifier = model()
-	    classifier.fit(X_train, y_train)
-	    return classifier
+		from sklearn.tree import DecisionTreeClassifier
+		classifier = DecisionTreeClassifier(criterion='entropy', splitter='best')
+		classifier.fit(X_train, y_train)
+		return classifier
 
-	def orders_to_pnl(self):
-		import pandas as pd
-		start = self.inv_amt / self.init_price 
-		order_amount = (self.inv_amt/start)*self.a
-		perf = self.decisions
-		perf["buy_q"] = perf["go_signal"] * perf["conviction_go"] * order_amount
-		perf["sell_q"] = perf["sell_signal"] * perf["conviction_sell"] * order_amount
-		perf["q"] = start + (perf["buy_q"].cumsum() - perf["sell_q"].cumsum())
-		perf["sell_rev"] = perf["sell_q"] * perf["sell_signal"] * perf["price"]
-		perf["buy_cost"] = perf["buy_q"] * perf["go_signal"] * perf["price"]
-		perf["TRev"] = perf["sell_rev"].cumsum()
-		perf["TCost"] = perf["buy_cost"].cumsum()
-		perf["curr_val"] = perf["q"] * perf["price"]
-		perf["cash_flow"] = perf["TRev"] - perf["TCost"]
-		perf["hold_val"] = start * perf["price"]
-		perf["pnl"] = (perf["curr_val"] + perf["cash_flow"]) - perf["hold_val"]
-		perf["algo_rt"] = (perf["curr_val"] + perf["cash_flow"])/perf["hold_val"]
-		perf["trade_ind"] = pd.to_numeric(perf["go_signal"] | perf["sell_signal"])
-		self.perf = perf
+	def hist_to_pnl(self, start, order_amount):
+		coin_hist = self.coin_hist
+		coin_hist["buy_q"] = coin_hist["go_signal"] * coin_hist["conviction_go"] * order_amount
+		coin_hist["sell_q"] = coin_hist["sell_signal"] * coin_hist["conviction_sell"] * order_amount
+		coin_hist["q"] = start + (coin_hist["buy_q"].cumsum() - coin_hist["sell_q"].cumsum())
+		coin_hist["sell_rev"] = coin_hist["sell_q"] * coin_hist["sell_signal"] * coin_hist["price"]
+		coin_hist["buy_cost"] = coin_hist["buy_q"] * coin_hist["go_signal"] * coin_hist["price"]
+		coin_hist["TRev"] = coin_hist["sell_rev"].cumsum()
+		coin_hist["TCost"] = coin_hist["buy_cost"].cumsum()
+		coin_hist["curr_val"] = coin_hist["q"] * coin_hist["price"]
+		coin_hist["cash_flow"] = coin_hist["TRev"] - coin_hist["TCost"]
+		coin_hist["hold_val"] = start * coin_hist["price"]
+		coin_hist["pnl"] = (coin_hist["curr_val"] + coin_hist["cash_flow"]) - coin_hist["hold_val"]
+		coin_hist["algo_rt"] = (coin_hist["curr_val"] + coin_hist["cash_flow"])/coin_hist["hold_val"]
+		coin_hist["trade_ind"] = coin_hist["go_signal"] * coin_hist["sell_signal"]
+		self.coin_hist = coin_hist
 
 	def summary(self):
-		q1 = self.perf['q'].iloc[0]
-		p1 = self.perf['price'].iloc[0]
+		total_revenue = 0
+		total_cost = 0
+		total_asset_val = 0.0
+		start_asset_val = 0
+		pnl = 0
+
+		q1 = self.coin_hist['q'].iloc[42*24]
+		p1 = self.coin_hist['price'].iloc[42*24]
 		start_asset_val = float(q1)*float(p1)
-		total_revenue = self.perf['sell_rev'].sum()
-		total_cost = self.perf['buy_cost'].sum()
-		q2 = self.perf['q'].tail(1).values[0]
-		p2 = self.perf['price'].tail(1).values[0]
+		total_revenue = self.coin_hist['sell_rev'].sum()
+		total_cost = self.coin_hist['buy_cost'].sum()
+		q2 = self.coin_hist['q'].tail(1).values[0]
+		p2 = self.coin_hist['price'].tail(1).values[0]
 		total_asset_val = float(q2)*float(p2)
-		pnl_over_hold = self.perf['pnl'].tail(1).values[0]
+		pnl_over_hold = self.coin_hist['pnl'].tail(1).values[0]
 		pnl = total_asset_val-start_asset_val + total_revenue-total_cost
-		a = 100*(((pnl+start_asset_val)/start_asset_val))-1
-		a2 = 100*((pnl_over_hold+start_asset_val)/start_asset_val-1)
+		a = 100*((pnl/start_asset_val))-1
+		a2 = 100*(self.coin_hist['algo_rt'].tail(1).values[0]-1)
 		print('CASHFLOW')
 		print('--------------------------------------')
 		print('Cash spent (Total Buy Cost): $' + str(round(total_cost,2)))
@@ -352,21 +351,51 @@ class Trader(object):
 		print()
 		print('ASSET VALUES: ')
 		print('--------------------------------------')
-		print('Start Quantity: ' + str(round(q1,3)) + self.coin)
+		print('Start Quantity: ' + str(round(q1,3)) + ' ' + self.coin)
 		print('Starting Asset Value: $' + str(round(start_asset_val, 2)))
-		print('Ending Quantity: ' + str(round(q2,3)) + self.coin)
+		print('Ending Quantity: ' + str(round(q2,3)) + ' ' + self.coin)
 		print('Ending Assets Value: $' + str(round(total_asset_val,2)))
 		print('Net Asset Value: $' + str(round(total_asset_val-start_asset_val,2)))
 		print('--------------------------------------')
 		print()
 		print('TEST RETURNS')
 		print('--------------------------------------')
-		print('PNL: $' + str(round(pnl,2)))
+		print('PNL: ' + str(round(pnl,2)) + ' ' + self.coin2)
 		print('Return %: ' + str(round(a,2)) + '%')
 		print('--------------------------------------')
 		print()
 		print('TEST VS HOLDOUT')
 		print('--------------------------------------')
-		print('PNL over Hold: $' + str(round(pnl_over_hold,2)))
+		print('PNL over Hold: ' + str(round(pnl_over_hold,2))+ ' ' + self.coin2)
 		print('Algo Return over Hold%: ' +str(round(a2,2)) + '%')
 		print('--------------------------------------')
+
+	def push_order(feed):
+		buy_cost = round(float(feed[8]),4)
+		sell_rev = round(float(feed[9]),4)
+
+		if (buy_cost > 0) or (sell_rev > 0):
+			import cbpro
+			from authentication import (api_secret, api_key, api_pass)
+			from datetime import datetime
+			now = datetime.now()
+			url = 'https://api-public.sandbox.pro.coinbase.com'
+			client = cbpro.AuthenticatedClient(api_key, api_secret, api_pass, api_url=url)
+			order_transcript = "No Action"
+
+			if( buy_cost > 0):
+
+
+
+
+
+
+
+				order_transcript = str( client.place_market_order(product_id='ETH-BTC', side= 'buy', funds = buy_cost))
+
+			if (sell_rev > 0):
+				order_transcript = str(client.place_market_order(product_id='ETH-BTC', side= 'sell', funds = sell_rev))
+
+			log = open("eth-btc-log.txt", "a")
+			n = log.write((str(now) + " | " + "Buy: " + str(buy_cost) + "Sell: " + str(sell_rev) + " " + order_transcript + "\n"))
+			log.close()
