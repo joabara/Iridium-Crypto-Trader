@@ -232,7 +232,7 @@ btc_searches.head()
 
 ### Individual Bot Strategy
 
-A trading bot is defined by the two currencies it's going to trade. A BTC/USD bot will be a bot that will buy BTC in USD based on the prices of BTC. This means the bot can also trade USD/BTC. Let's init a bot that starts with 500 USD worth of Bitcoin and trades ~75 USD at a time.
+A trading bot is defined by the two currencies it's going to trade. A BTC/USD bot will be a bot that will buy BTC in USD based on the prices of BTC. This means the bot can also trade USD/BTC. Let's init a bot that starts with 10000 USD worth of Bitcoin and trades ~1500 USD at a time.
 
 
 ```python
@@ -325,15 +325,15 @@ bot.summary()
     --------------------------------------
 
 
-What this readout shows is that the BTC/USD bot was able to accumulate around 17,000 USD worth of BTC by making some smart trades and only spending a net of 9,300 USD. The bot, on paper, was able to double its asset value by adding 8,500 USD in value.
+What this readout shows is that the BTC/USD bot was able to accumulate around 25,000 USD worth of BTC by making some smart trades and only spending a net of 9,000 USD. The bot, on paper, was able to double its asset value by adding 5100 USD in value.
 
 However, this would not be a true performance readout. It is important to note that during this time period, the price of BTC/USD did increase quite drastically. We need to able to compare the performance of the strategy vs the holdout (i.e if we didn't do anything).
 
-In conclusion, the algorithm was able to create ~ 2,000 USD in net value, an incremental improvement rate of about 20%.
+In conclusion, the algorithm was able to create ~ 1482.68 USD in net value, an incremental improvement rate of about 20%.
 
 #### Resilience to Decreasing Prices
 
-We validate the algorithm's robustness by see how algorithm return rate is affected by a drop in price. In this example, we will look at a USDT/ETH trading bot. Since the price of ETH in USD has gone up significantly in the past few weeks, the price of USDT in ETH will have gone down.
+We validate the algorithm's robustness by see how algorithm return rate is affected by a drop in price. In this example, we will look at a USDT/BTC trading bot. Since the price of BTC in USD has gone up significantly in the past few weeks, the price of USDT in BTC will have gone down.
 
 
 ```python
@@ -422,11 +422,11 @@ axb.legend(loc='upper right')
     
 
 
-The plot above shows that the price of USDT in ETH drops immediately as the bot starts trading. On the flipside, the bot starts selling USDT for ETH, increasing the ETH Cashflow. This is effectively the same thing as buying a lot of ETH when the price increases to USDT.
+The plot above shows that the price of USDT in BTC drops immediately as the bot starts trading. On the flipside, the bot starts selling USDT for BTC, increasing the BTC Cashflow. This is effectively the same thing as buying a lot of BTC when the price increases to USDT.
 
-The performance below shows that the algorithm below suffers a loss of ~11%. However, when comparing the performance versus the holdout (if the bot had done nothing at all), the bot still performed 55% better.
+The performance below shows that the algorithm below suffers a loss of ~13%. However, when comparing the performance versus the holdout (if the bot had done nothing at all), the bot still performed 13% better.
 
-This means that while the bot takes a loss, it is able to react quickly and make sure the losses are minimized. While the USDT price tanked, it sold a lot of ETH to reduce the losses.
+This means that while the bot takes a loss, it is able to react quickly and make sure the losses are minimized. While the USDT price tanked, it sold a lot of BTC to reduce the losses.
 
 #### Hedging Risk with 'Appetite Control'
 
@@ -478,7 +478,7 @@ As we mentioned before, the bots usually have a pretty good performance, but in 
 
 We're going to take a sample of the top 10 coins in terms of market cap and we're going to create a network of bots to simulate orders. The simulation process takes a long time, but in production it won't be a problem since we are running only one record (the current hour) through the model and processing any orders that need to go through.
 
-We will give each bot around 1,000 USD and a standard trade size of 2.5%, or 25 USD.
+We will give each bot around 1,000 USD and a standard trade size of 15%, or 150 USD.
 
 
 ```python
