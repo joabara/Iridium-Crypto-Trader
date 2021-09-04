@@ -302,7 +302,7 @@ class Trader(object):
 
 	def build_models_on_train(self, model, X_train,  y_train):
 		from sklearn.tree import DecisionTreeClassifier
-		classifier = DecisionTreeClassifier(criterion='entropy', splitter='best')
+		classifier = DecisionTreeClassifier(criterion='entropy', splitter='best', min_samples_leaf=6)
 		classifier.fit(X_train, y_train)
 		return classifier
 
