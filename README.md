@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-* Iridium trading algorithms acheive consistently strong results across diference currencies, like a 20% incremental alpha over holdout.
+* Iridium trading algorithms acheive consistently strong results across diference currencies, around a ~10 incremental alpha over holdout.
 
 * Appetite control algorithm significantly reduces risks from market volatility and cashflow issues.
 
