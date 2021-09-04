@@ -350,29 +350,29 @@ bot.summary()
 
     CASHFLOW
     --------------------------------------
-    Cash spent (Total Buy Cost): $1.09
-    Cash earned (Total Sell Revenue): $1.16
+    Cash spent (Total Buy Cost): 1.09 BTC
+    Cash earned (Total Sell Revenue): $1.16 BTC
     Net Cashflow: 0.07
     --------------------------------------
     
     ASSET VALUES: 
     --------------------------------------
-    Start Quantity: 3210.766 tether
-    Starting Asset Value: $0.08
-    Ending Quantity: 65.127 tether
-    Ending Assets Value: $0.0
-    Net Asset Value: $-0.08
+    Start Quantity: $ 3210.766 tether
+    Starting Asset Value: 0.08 BTC
+    Ending Quantity: $ 65.127 tether
+    Ending Assets Value: $0.0 BTC
+    Net Asset Value: $-0.08 BTC
     --------------------------------------
     
     TEST RETURNS
     --------------------------------------
-    PNL: -0.01 btc
+    PNL: -0.01 BTC
     Return %: -12.84%
     --------------------------------------
     
     TEST VS HOLDOUT
     --------------------------------------
-    PNL over Hold: 0.01 btc
+    PNL over Hold: 0.01 BTC
     Algo Return over Hold%: 12.53%
     --------------------------------------
 
