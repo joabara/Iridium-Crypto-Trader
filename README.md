@@ -232,7 +232,7 @@ btc_searches.head()
 
 ### Individual Bot Strategy
 
-A trading bot is defined by the two currencies it's going to trade. A BTC/USD bot will be a bot that will buy BTC in USD based on the prices of BTC. This means the bot can also trade USD/BTC. Let's init a bot that starts with 10000 USD worth of Bitcoin and trades ~1500 USD at a time.
+A trading bot is defined by the two currencies it's going to trade. A BTC/USD bot will be a bot that will buy BTC in USD based on the prices of BTC. This means the bot can also trade USD/BTC. Let's init a bot that starts with 10,000 USD worth of Bitcoin and trades ~1,500 USD at a time.
 
 
 ```python
@@ -325,11 +325,11 @@ bot.summary()
     --------------------------------------
 
 
-What this readout shows is that the BTC/USD bot was able to accumulate around 25,000 USD worth of BTC by making some smart trades and only spending a net of 9,000 USD. The bot, on paper, was able to double its asset value by adding 5100 USD in value.
+What this readout shows is that the BTC/USD bot was able to accumulate around 25,000 USD worth of BTC by making some smart trades and only spending a net of 8,846.35 USD. The bot, on paper, was able to double its asset value by adding 5071.68 USD in value.
 
 However, this would not be a true performance readout. It is important to note that during this time period, the price of BTC/USD did increase quite drastically. We need to able to compare the performance of the strategy vs the holdout (i.e if we didn't do anything).
 
-In conclusion, the algorithm was able to create ~ 1482.68 USD in net value, an incremental improvement rate of about 20%.
+In conclusion, the algorithm was able to create 1482.68 USD in incremental net value, an incremental improvement rate of about 9.61%.
 
 #### Resilience to Decreasing Prices
 
