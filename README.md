@@ -1,4 +1,4 @@
-# Iridium Trading Hive
+# Iridium Trading Bot
 
 ## Executive Summary
 
