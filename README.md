@@ -1,50 +1,17 @@
-# Iridium Trading Algorithm
+# Iridium Trading Hive
 
 ## Executive Summary
 
-* Iridium trading algorithms acheive consistently strong results across diference currencies, around a ~10% incremental alpha over holdout.
+* Iridium trading algorithms acheive consistently strong results across diference currencies, like a 20% incremental alpha over holdout.
 
 * Appetite control algorithm significantly reduces risks from market volatility and cashflow issues.
 
 * By grouping many bots together into a Hive network we can diversify and smooth performance over time.
 
 
-![](Decisions.gif)
-
-*Orange leaves represent buying decisions, blue represents selling decisions*
-
-
-
 ```python
 network.simSummary()
 ```
-
-    CASHFLOW
-    --------------------------------------
-    Cash spent (Total Buy Cost): $356507.88
-    Cash earned (Total Sell Revenue): $317059.55
-    Net Cashflow: -39448.32
-    --------------------------------------
-    
-    ASSET VALUES: 
-    --------------------------------------
-    Starting Asset Value: $11153.53
-    Ending Assets Value: $71563.07
-    Net Asset Value: $60409.54
-    --------------------------------------
-    
-    TEST RETURNS
-    --------------------------------------
-    PNL: $20961.22
-    Return %: 187.93%
-    --------------------------------------
-    
-    TEST VS HOLDOUT
-    --------------------------------------
-    PNL over Hold: $10222.95
-    Algo Return over Hold%: 91.66%
-    --------------------------------------
-
 
 ## Data
 
@@ -55,13 +22,26 @@ network.simSummary()
 from coin_hist_pull import *
 
 index = import_coin_list()
-index.head()
+index.head(10)
 ```
 
 
 
 
 <div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -102,6 +82,36 @@ index.head()
       <td>USDT</td>
       <td>Tether</td>
     </tr>
+    <tr>
+      <th>5</th>
+      <td>ripple</td>
+      <td>XRP</td>
+      <td>XRP</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>solana</td>
+      <td>SOL</td>
+      <td>Solana</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>dogecoin</td>
+      <td>DOGE</td>
+      <td>Dogecoin</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>polkadot</td>
+      <td>DOT</td>
+      <td>Polkadot</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>usd-coin</td>
+      <td>USDC</td>
+      <td>USD Coin</td>
+    </tr>
   </tbody>
 </table>
 </div>
@@ -118,6 +128,19 @@ prices.head()
 
 
 <div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -131,38 +154,38 @@ prices.head()
   <tbody>
     <tr>
       <th>2043</th>
-      <td>2021-09-04 15:29:44.000</td>
-      <td>49972.512112</td>
-      <td>9.397981e+11</td>
-      <td>9.397981e+11</td>
+      <td>2021-09-06 13:36:27.000</td>
+      <td>51236.488363</td>
+      <td>9.635965e+11</td>
+      <td>9.635965e+11</td>
     </tr>
     <tr>
       <th>2042</th>
-      <td>2021-09-04 15:03:20.614</td>
-      <td>50025.343668</td>
-      <td>9.407907e+11</td>
-      <td>9.407907e+11</td>
+      <td>2021-09-06 13:03:42.420</td>
+      <td>51328.326739</td>
+      <td>9.653960e+11</td>
+      <td>9.653960e+11</td>
     </tr>
     <tr>
       <th>2041</th>
-      <td>2021-09-04 14:07:26.127</td>
-      <td>50157.218372</td>
-      <td>9.453514e+11</td>
-      <td>9.453514e+11</td>
+      <td>2021-09-06 12:00:58.225</td>
+      <td>51384.962032</td>
+      <td>9.664615e+11</td>
+      <td>9.664615e+11</td>
     </tr>
     <tr>
       <th>2040</th>
-      <td>2021-09-04 13:07:46.341</td>
-      <td>50246.891663</td>
-      <td>9.446783e+11</td>
-      <td>9.446783e+11</td>
+      <td>2021-09-06 11:06:58.999</td>
+      <td>51770.081701</td>
+      <td>9.730119e+11</td>
+      <td>9.730119e+11</td>
     </tr>
     <tr>
       <th>2039</th>
-      <td>2021-09-04 12:06:26.440</td>
-      <td>49958.691352</td>
-      <td>9.397770e+11</td>
-      <td>9.397770e+11</td>
+      <td>2021-09-06 10:01:58.312</td>
+      <td>51810.725514</td>
+      <td>9.744632e+11</td>
+      <td>9.744632e+11</td>
     </tr>
   </tbody>
 </table>
@@ -183,6 +206,19 @@ btc_searches.head()
 
 
 <div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -198,28 +234,28 @@ btc_searches.head()
   </thead>
   <tbody>
     <tr>
-      <th>2021-06-04</th>
-      <td>74</td>
-      <td>False</td>
-    </tr>
-    <tr>
-      <th>2021-06-05</th>
-      <td>67</td>
-      <td>False</td>
-    </tr>
-    <tr>
       <th>2021-06-06</th>
-      <td>71</td>
+      <td>70</td>
       <td>False</td>
     </tr>
     <tr>
       <th>2021-06-07</th>
-      <td>72</td>
+      <td>67</td>
       <td>False</td>
     </tr>
     <tr>
       <th>2021-06-08</th>
-      <td>94</td>
+      <td>91</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>2021-06-09</th>
+      <td>86</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>2021-06-10</th>
+      <td>75</td>
       <td>False</td>
     </tr>
   </tbody>
@@ -232,16 +268,14 @@ btc_searches.head()
 
 ### Individual Bot Strategy
 
-A trading bot is defined by the two currencies it's going to trade. A BTC/USD bot will be a bot that will buy BTC in USD based on the prices of BTC. This means the bot can also trade USD/BTC. Let's init a bot that starts with 10,000 USD worth of Bitcoin and trades ~1,500 USD at a time.
+A trading bot is defined by the two currencies it's going to trade. A BTC/USD bot will be a bot that will buy BTC in USD based on the prices of BTC. This means the bot can also trade USD/BTC. Let's init a bot that starts with 1000 USD worth of Bitcoin and trades ~400 USD at a time.
 
 
 ```python
 from Trader import *
-inv_amt = 10000
-pct = 0.15
-bot = Trader('Iridium_bitcoin_usd', 'bitcoin', 'usd', 'CoinBasePro')
-unit_cost = bot.hist['price'].iloc[42*24]
-order_amount = inv_amt/unit_cost
+inv_amt = 1000
+pct = 0.40
+bot = Trader('Iridium_bitcoin_usd', 'bitcoin', 'usd', 'CoinBasePro', inv_amt, pct)
 bot.learn_and_sim(42*24)
 ```
 
@@ -260,7 +294,7 @@ plt.show()
 
 
     
-![png](plots/output_11_0.png)
+![png](output_11_0.png)
     
 
 
@@ -289,91 +323,85 @@ Below, is a the simulation result from a BTC/USD trading bot.
 
 
 ```python
-bot.hist_to_pnl(order_amount, order_amount*pct)
-decisions = bot.coin_hist
-decisions = decisions.iloc[42*24:]
-decisions.to_csv('decisions.csv')
 bot.summary()
 ```
 
     CASHFLOW
     --------------------------------------
-    Cash spent (Total Buy Cost): $320461.38
-    Cash earned (Total Sell Revenue): $311615.04
-    Net Cashflow: -8846.35
+    Cash spent (Total Buy Cost): 36680.6  usd
+    Cash earned (Total Sell Revenue): $38153.44  usd
+    Net Cashflow: 1472.84  usd
     --------------------------------------
     
     ASSET VALUES: 
     --------------------------------------
-    Start Quantity: 0.309 bitcoin
-    Starting Asset Value: $11831.83
-    Ending Quantity: 0.515 bitcoin
-    Ending Assets Value: $25749.85
-    Net Asset Value: $13918.03
+    Start Quantity: 0.028 bitcoin
+    Starting Asset Value: 1101.74  usd
+    Ending Quantity: 0.006 bitcoin
+    Ending Assets Value: 303.08  usd
+    Net Asset Value: $-798.66
     --------------------------------------
     
     TEST RETURNS
     --------------------------------------
-    PNL: 5071.68 usd
-    Return %: 41.86%
+    PNL: 674.18 usd
+    Return %: 60.19%
     --------------------------------------
     
     TEST VS HOLDOUT
     --------------------------------------
-    PNL over Hold: 1482.68 usd
-    Algo Return over Hold%: 9.61%
+    PNL over Hold: 352.82 usd
+    Algo Return over Hold%: 24.79%
     --------------------------------------
 
 
-What this readout shows is that the BTC/USD bot was able to accumulate around 25,000 USD worth of BTC by making some smart trades and only spending a net of 8,846.35 USD. The bot, on paper, was able to double its asset value by adding 5071.68 USD in value.
+What this readout shows is that the BTC/USD bot was able to accumulate around 17,000 USD worth of BTC by making some smart trades and only spending a net of 9,300 USD. The bot, on paper, was able to double its asset value by adding 8,500 USD in value.
 
 However, this would not be a true performance readout. It is important to note that during this time period, the price of BTC/USD did increase quite drastically. We need to able to compare the performance of the strategy vs the holdout (i.e if we didn't do anything).
 
-In conclusion, the algorithm was able to create 1482.68 USD in incremental net value, an incremental improvement rate of about 9.61%.
+In conclusion, the algorithm was able to create ~ 2,000 USD in net value, an incremental improvement rate of about 20%.
 
 #### Resilience to Decreasing Prices
 
-We validate the algorithm's robustness by see how algorithm return rate is affected by a drop in price. In this example, we will look at a USDT/BTC trading bot. Since the price of BTC in USD has gone up significantly in the past few weeks, the price of USDT in BTC will have gone down.
+We validate the algorithm's robustness by see how algorithm return rate is affected by a drop in price. In this example, we will look at a USDT/ETH trading bot. Since the price of ETH in USD has gone up significantly in the past few weeks, the price of USDT in ETH will have gone down.
 
 
 ```python
 from Trader import *
-inv_amt = 0.1
-pct = 0.15
-bot = Trader('Iridium_USDT_BTC', 'tether', 'btc', 'CoinBasePro')
-unit_cost = bot.hist['price'].iloc[42*24]
-order_amount = inv_amt/unit_cost
+inv_amt = 0.05
+pct = 0.40
+bot = Trader('Iridium_bitcoin_usd', 'tether', 'btc', 'CoinBasePro', inv_amt, pct)
 bot.learn_and_sim(42*24)
-bot.hist_to_pnl(order_amount, order_amount*pct)
+bot.coin_hist.iloc[42*24:].to_csv('decisions2.csv')
 bot.summary()
 ```
 
     CASHFLOW
     --------------------------------------
-    Cash spent (Total Buy Cost): 1.09 BTC
-    Cash earned (Total Sell Revenue): $1.16 BTC
-    Net Cashflow: 0.07
+    Cash spent (Total Buy Cost): 0.97  btc
+    Cash earned (Total Sell Revenue): $0.93  btc
+    Net Cashflow: -0.04  btc
     --------------------------------------
     
     ASSET VALUES: 
     --------------------------------------
-    Start Quantity: $ 3210.766 tether
-    Starting Asset Value: 0.08 BTC
-    Ending Quantity: $ 65.127 tether
-    Ending Assets Value: $0.0 BTC
-    Net Asset Value: $-0.08 BTC
+    Start Quantity: 1795.742 tether
+    Starting Asset Value: 0.05  btc
+    Ending Quantity: 4449.449 tether
+    Ending Assets Value: 0.09  btc
+    Net Asset Value: $0.04
     --------------------------------------
     
     TEST RETURNS
     --------------------------------------
-    PNL: -0.01 BTC
-    Return %: -12.84%
+    PNL: -0.0 btc
+    Return %: -6.81%
     --------------------------------------
     
     TEST VS HOLDOUT
     --------------------------------------
-    PNL over Hold: 0.01 BTC
-    Algo Return over Hold%: 12.53%
+    PNL over Hold: 0.01 btc
+    Algo Return over Hold%: 21.99%
     --------------------------------------
 
 
@@ -412,59 +440,21 @@ axb.legend(loc='upper right')
 
 
 
-    <matplotlib.legend.Legend at 0x7fb7d9e8fc70>
+    <matplotlib.legend.Legend at 0x7f890ce42280>
 
 
 
 
     
-![png](plots/output_18_1.png)
+![png](output_18_1.png)
     
 
 
-The plot above shows that the price of USDT in BTC drops immediately as the bot starts trading. On the flipside, the bot starts selling USDT for BTC, increasing the BTC Cashflow. This is effectively the same thing as buying a lot of BTC when the price increases to USDT.
+The plot above shows that the price of USDT in ETH drops immediately as the bot starts trading. On the flipside, the bot starts selling USDT for ETH, increasing the ETH Cashflow. This is effectively the same thing as buying a lot of ETH when the price increases to USDT.
 
-The performance below shows that the algorithm below suffers a loss of ~13%. However, when comparing the performance versus the holdout (if the bot had done nothing at all), the bot still performed 13% better.
+The performance below shows that the algorithm below suffers a loss of ~11%. However, when comparing the performance versus the holdout (if the bot had done nothing at all), the bot still performed 55% better.
 
-This means that while the bot takes a loss, it is able to react quickly and make sure the losses are minimized. While the USDT price tanked, it sold a lot of BTC to reduce the losses.
-
-#### Hedging Risk with 'Appetite Control'
-
-In early simulations, the bot was exceptionally profitable. It was very good at predicting price rises and subsequently putting in buy orders. However, after a three-week bull run, the bot would be extremely over-leveraged since it had been frantically buying as much as possible. Eventually, a market crash occurred, and the bot's performance went from ~ +80% to -30% in a day.  
-
-To illustrate, you have 100,000 USD and 1 Bitcoin. After 3 weeks of price continuing to go up, you now have $0 and 3 Bitcoin. On paper, that's pretty good - you might have doubled your total asset value. But next week, the price of Bitcoin goes down 50 percent. You still have 3 Bitcoin, but now you have less value overall from when you started.
-
-The way we fix this aggression is to create an 'appetite curve' to make sure the initial balance of currencies remains roughly the same. The more the bot buys, the less likely it is to buy more, yet still equally likely to sell. The inverse is also true.
-
-To illustrate:
-
-
-```python
-import numpy as np
-import seaborn as sns
-import warnings
-warnings.filterwarnings('ignore')
-control = np.random.normal(0, 25, 10000)
-control = abs(control)
-sns.distplot(control).set(title ="Appetite Control", xlabel="Off-Balance by N Trades", ylabel = "Likelihood To Continue Order")
-```
-
-
-
-
-    [Text(0.5, 1.0, 'Appetite Control'),
-     Text(0.5, 0, 'Off-Balance by N Trades'),
-     Text(0, 0.5, 'Likelihood To Continue Order')]
-
-
-
-
-    
-![png](plots/output_21_1.png)
-    
-
-
-So when the bot continues to be aggressively buying or selling, the actual amount it is allowed to trade is restricted until the balance sheet is in equilibrium.
+This means that while the bot takes a loss, it is able to react quickly and make sure the losses are minimized. While the USDT price tanked, it sold a lot of ETH to reduce the losses.
 
 ### Hive Network
 
@@ -478,7 +468,7 @@ As we mentioned before, the bots usually have a pretty good performance, but in 
 
 We're going to take a sample of the top 10 coins in terms of market cap and we're going to create a network of bots to simulate orders. The simulation process takes a long time, but in production it won't be a problem since we are running only one record (the current hour) through the model and processing any orders that need to go through.
 
-We will give each bot around 1,000 USD and a standard trade size of 15%, or 150 USD.
+We will give each bot around 1,000 USD and a standard trade size of 2.5%, or 25 USD.
 
 
 ```python
@@ -492,6 +482,19 @@ index.head()
 
 
 <div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -547,13 +550,13 @@ index.head()
 
 ```python
 network = HiveNet()
-network.loadBotNet(index.iloc[0:10])
+network.loadBotNet(index.iloc[0:5], 500, 0.40)
 network.setWindow(42)
 ```
 
 
 ```python
-network.learn_performance(42, 1000, 0.15)
+network.learn_performance(42, 500, 0.4)
 network.networkToPerf()
 ```
 
@@ -567,28 +570,28 @@ network.simSummary()
 
     CASHFLOW
     --------------------------------------
-    Cash spent (Total Buy Cost): $356507.88
-    Cash earned (Total Sell Revenue): $317059.55
-    Net Cashflow: -39448.32
+    Cash spent (Total Buy Cost): $90002.06
+    Cash earned (Total Sell Revenue): $90694.37
+    Net Cashflow: 692.32
     --------------------------------------
     
     ASSET VALUES: 
     --------------------------------------
-    Starting Asset Value: $11153.53
-    Ending Assets Value: $71563.07
-    Net Asset Value: $60409.54
+    Starting Asset Value: $2449.01
+    Ending Assets Value: $3424.97
+    Net Asset Value: $975.97
     --------------------------------------
     
     TEST RETURNS
     --------------------------------------
-    PNL: $20961.22
-    Return %: 187.93%
+    PNL: $1668.29
+    Return %: 68.12%
     --------------------------------------
     
     TEST VS HOLDOUT
     --------------------------------------
-    PNL over Hold: $10222.95
-    Algo Return over Hold%: 91.66%
+    PNL over Hold: $343.31
+    Algo Return over Hold%: 14.02%
     --------------------------------------
 
 
