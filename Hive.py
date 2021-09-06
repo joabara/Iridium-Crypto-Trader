@@ -5,17 +5,18 @@ class HiveNet(object):
 	def __init__(self):
 		self.hive = []
 		self.perf_grid = None
+		self.decisions = []
 
 	def setWindow(self, day_window):
 		self.window = day_window
 
-	def loadBotNet(self, index):
+	def loadBotNet(self, index, inv_amt, a):
 		import time
 		self.index = []
 		ref = dict({})
 		for x in index['id']:
 			try: 
-				new_bot = Trader('Iridium-'+str(x)+'-USD', x, 'usd', 'Sim')
+				new_bot = Trader('Iridium-'+str(x)+'-USD', x, 'usd', 'Sim', inv_amt, a)
 				self.hive.append(new_bot)
 				time.sleep(2)
 				self.index.append(new_bot.coin)
@@ -31,7 +32,6 @@ class HiveNet(object):
 			unit_cost = bot.hist['price'].iloc[day_window*24]
 			order_amount = inv_amt/unit_cost
 			bot.learn_and_sim(day_window*24)
-			bot.hist_to_pnl(order_amount, order_amount*pct)
 
 
 	def networkToPerf(self):
@@ -64,9 +64,12 @@ class HiveNet(object):
 		self.pnl2 = pnl2
 
 	def learn(self, day_window):
+		import pandas as pd
+		self.decisions = pd.DataFrame(columns = ['coin','price','p_go', 'p_sell', 'o3_go', 'o3_sell', 'conviction_go', 'conviction_sell', 'go_signal', 'sell_signal', 'buy_q', 'sell_q'])
 		for bot in self.hive:
 			print(bot.coin + "-" + bot.coin2 + " processed...")
-			bot.learn(day_window*24)
+			self.decisions = pd.concat([self.decisions,bot.learn(day_window*24)])
+
 
 	def process_orders(self):
 		for bot in self.hive:

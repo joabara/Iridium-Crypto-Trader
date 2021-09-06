@@ -1,5 +1,5 @@
 class Trader(object):
-	def __init__(self, name, coin, coin2, cbp_market):
+	def __init__(self, name, coin, coin2, cbp_market, inv_amt, a):
 		self.coin = coin # bitcoin
 		self.coin2 = coin2 # usd
 		self.market = cbp_market
@@ -30,6 +30,10 @@ class Trader(object):
 		from datetime import datetime
 		import warnings
 		warnings.filterwarnings('ignore')
+
+		self.inv_amt = inv_amt
+		self.a = a
+		self.cash = inv_amt
 
 
 		hist = coin_price_hist(self.coin, self.coin2, 85, 'hourly')
@@ -74,7 +78,24 @@ class Trader(object):
 		coin_hist["conviction_sell"] = 0
 		coin_hist["sell_signal"] =  0
 		coin_hist["go_signal"] = 0
-
+		coin_hist["buy_q"] = 0
+		coin_hist["sell_q"] = 0
+		coin_hist["prev_q"] = 0
+		coin_hist["q"] = 0
+		coin_hist['wallet'] = 0
+		coin_hist["prev_wallet"] = 0 
+		coin_hist["sell_rev"] = 0
+		coin_hist["buy_cost"] = 0
+		coin_hist["TRev"] = 0
+		coin_hist["TCost"] = 0
+		coin_hist["curr_val"] = 0
+		coin_hist["cash_flow"] = 0
+		coin_hist["hold_val"] = 0
+		coin_hist["pnl"] = 0
+		coin_hist["algo_rt"] = 0
+		coin_hist["trade_ind"] = 0
+		self.unit_cost = self.inv_amt/coin_hist['price'].iloc[0]
+		self.order_amount = self.unit_cost*self.a
 
 
 		g_trends = pd.DataFrame(g_trend_pull([self.coin]))
@@ -111,14 +132,18 @@ class Trader(object):
 		lowest_t1 = coin_hist['pt'].iloc[window+1]
 		highest_t1 = coin_hist['pt'].iloc[len(coin_hist['pt'])-1]
 
+		start = self.unit_cost
+		order_amount = self.order_amount
+		wallet = self.cash
+
 		i = 0
 		for day in coin_hist['pt']:
 			from datetime import datetime
 			t1 = day
-			t0 = t1-pd.Timedelta(days=window)
+			t0 = t1-pd.Timedelta(days=window/24)
 			t0 = t0.replace(microsecond=0, second=0, minute=0)
 
-			if lowest_t1 <= t1 < highest_t1:
+			if lowest_t1 <= t1 <= highest_t1:
 				x = coin_hist[((coin_hist['pt'] >= t0) & (coin_hist['pt'] < t1))]
 				y = coin_hist[coin_hist['pt'] == t1]
 				o = self.model_build_and_run(x)
@@ -130,60 +155,100 @@ class Trader(object):
 				coin_hist["o3_go"].iloc[i] =  output['o3_go'].values[0]
 				coin_hist["o3_sell"].iloc[i] =  output['o3_sell'].values[0]
 
-				queue_tm = t1 +  pd.Timedelta(hours=6)
+				coin_hist["conviction_go"].iloc[i] =  output['conviction_go'].values[0]#-int(balance>0)*self.get_balance_control(balance)
+				coin_hist["conviction_sell"].iloc[i] = output['conviction_sell'].values[0]#-int(balance<0)*self.get_balance_control(balance)
+				coin_hist["go_signal"].iloc[i] =  output['go_signal'].values[0]
+				coin_hist["sell_signal"].iloc[i] =  output['sell_signal'].values[0]
 
-				if day in sell_queue:
-					coin_hist["conviction_go"].iloc[i] =  0 
-					coin_hist["conviction_sell"].iloc[i] = 1 
-					coin_hist["go_signal"].iloc[i] =  0 
-					coin_hist["sell_signal"].iloc[i] = 1 
-					sell_queue.remove(day)
-					balance-=1
+			coin_hist["prev_q"].iloc[i] = coin_hist["q"].iloc[i-1]
+			coin_hist["prev_wallet"].iloc[i] = coin_hist["wallet"].iloc[i-1]
 
-				elif day in buy_queue:
-					coin_hist["conviction_go"].iloc[i] =  1 
-					coin_hist["conviction_sell"].iloc[i] = 0 
-					coin_hist["go_signal"].iloc[i] =  1 
-					coin_hist["sell_signal"].iloc[i] = 0 
-					buy_queue.remove(day)
-					balance+=1
+			coin_hist["buy_q"].iloc[i] = coin_hist["go_signal"].iloc[i] * coin_hist["conviction_go"].iloc[i] * order_amount
+			coin_hist["sell_q"].iloc[i] = coin_hist["sell_signal"].iloc[i] * coin_hist["conviction_sell"].iloc[i] * order_amount
+			suff_funds = coin_hist["prev_wallet"].iloc[i] >= (coin_hist["buy_q"].iloc[i] * coin_hist["go_signal"].iloc[i] * coin_hist["price"].iloc[i])
+			enough_q = coin_hist["prev_q"].iloc[i] >= coin_hist["sell_q"].iloc[i]
 
-				else:
-					coin_hist["conviction_go"].iloc[i] =  output['conviction_go'].values[0]-int(balance>0)*self.get_balance_control(balance)
-					coin_hist["conviction_sell"].iloc[i] = output['conviction_sell'].values[0]-int(balance<0)*self.get_balance_control(balance)
-					coin_hist["go_signal"].iloc[i] =  output['go_signal'].values[0]
-					coin_hist["sell_signal"].iloc[i] =  output['sell_signal'].values[0]
-					if output['go_signal'].values[0] > 0:
-						sell_queue.append(queue_tm)
-						balance += 1
-					if output['sell_signal'].values[0] > 0:
-						buy_queue.append(queue_tm)
-						balance -= 1
+			if suff_funds: 
+				coin_hist["buy_cost"].iloc[i] = coin_hist["buy_q"].iloc[i] * coin_hist["go_signal"].iloc[i] * coin_hist["price"].iloc[i]
+			else:
+				coin_hist["buy_cost"].iloc[i] = 0
+				coin_hist["buy_q"].iloc[i] = 0
+
+			if enough_q:
+				coin_hist["sell_rev"].iloc[i] = coin_hist["sell_q"].iloc[i] * coin_hist["sell_signal"].iloc[i] * coin_hist["price"].iloc[i]
+			else:
+				coin_hist["sell_rev"].iloc[i] = 0
+				coin_hist["sell_q"].iloc[i] = 0
+			
+			coin_hist["q"].iloc[i] = start + (coin_hist["buy_q"].cumsum().iloc[i] - coin_hist["sell_q"].cumsum().iloc[i])
+			
+			coin_hist["TRev"].iloc[i] = (coin_hist["sell_rev"].cumsum()).iloc[i]
+			coin_hist["TCost"].iloc[i] = (coin_hist["buy_cost"].cumsum()).iloc[i]
+			
+
+			coin_hist["curr_val"].iloc[i] = coin_hist["q"].iloc[i] * coin_hist["price"].iloc[i]
+
+			coin_hist["cash_flow"].iloc[i] = coin_hist["TRev"].iloc[i] - coin_hist["TCost"].iloc[i]
+			coin_hist['wallet'] =  wallet + coin_hist["cash_flow"].iloc[i]
+			coin_hist["hold_val"].iloc[i] = start * coin_hist["price"].iloc[i]
+			coin_hist["pnl"].iloc[i] = (coin_hist["curr_val"].iloc[i] + coin_hist["cash_flow"].iloc[i]) - coin_hist["hold_val"].iloc[i]
+			coin_hist["algo_rt"].iloc[i] = (coin_hist["curr_val"].iloc[i] + coin_hist["cash_flow"].iloc[i])/coin_hist["hold_val"].iloc[i]
+			coin_hist["trade_ind"].iloc[i] = coin_hist["go_signal"].iloc[i] * coin_hist["sell_signal"].iloc[i]
+
+
 			i += 1
 			pct = round((i / len(self.coin_hist))*100, 2)
 			# if i % 79 == 0: print(pct)
-
+		# print(self.coin + ' sim complete...')
 		self.coin_hist = coin_hist
 
 	def learn(self, window):
+		import pandas as pd
 		i = window
 		coin_hist = self.coin_hist
-		daysago = len(coin_hist)-window-1
-		yesterday = len(coin_hist)-1
-		today = len(coin_hist)-1
+		sell_queue = []
+		buy_queue = []
+		balance = 0
 
-		x = coin_hist.iloc[daysago : yesterday ,:]
-		y = coin_hist.iloc[today ,:]
+		start = self.unit_cost
+		order_amount = self.order_amount*self.a
+		wallet = self.cash
+
+		i = 0
+		from datetime import datetime
+
+		now = datetime.now()
+
+		t1 = now.replace(microsecond=0, second=0, minute=0)
+		t0 = t1-pd.Timedelta(days=window/24)
+		t0 = t0.replace(microsecond=0, second=0, minute=0)
+
+		t1 = t1.strftime("%Y-%m-%d %H:%M:%S")
+		t0 = t0.strftime("%Y-%m-%d %H:%M:%S")
+
+		
+		x = coin_hist[((coin_hist['pt'] >= t0) & (coin_hist['pt'] < t1))]
+		y = coin_hist[(coin_hist['pt'] == t1)].tail(1)
 		o = self.model_build_and_run(x)
+
 		output = o[2]
 		self.go_build = o[0]
 		self.sell_build = o[1]
+		y['coin'] = self.coin
+		y["p_go"] =  output['p_go'].values[0]
+		y["p_sell"] =  output['p_sell'].values[0]
+		y["o3_go"] =  output['o3_go'].values[0]
+		y["o3_sell"] =  output['o3_sell'].values[0]
+		y["conviction_go"] =  output['conviction_go'].values[0]
+		y["conviction_sell"] = output['conviction_sell'].values[0]
+		y["go_signal"] =  output['go_signal'].values[0]
+		y["sell_signal"] =  output['sell_signal'].values[0]
+		y["buy_q"] = y["go_signal"] * y["conviction_go"] * order_amount
+		y["sell_q"] = y["sell_signal"] * y["conviction_sell"] * order_amount
 
-		d =  [output['p_go'].values[0], output['p_sell'].values[0], output['o3_go'].values[0], 
-		output['o3_sell'].values[0], output['conviction_go'].values[0], output['conviction_sell'].values[0], 
-		output['go_signal'].values[0], output['sell_signal'].values[0]]
+		self.decision = y[['coin','price','p_go', 'p_sell', 'o3_go', 'o3_sell', 'conviction_go', 'conviction_sell', 'go_signal', 'sell_signal', 'buy_q', 'sell_q']]
 
-		self.decision =  d
+		return self.decision
 
 
 	def model_build_and_run(self, coin_hist):
@@ -306,23 +371,6 @@ class Trader(object):
 		classifier.fit(X_train, y_train)
 		return classifier
 
-	def hist_to_pnl(self, start, order_amount):
-		coin_hist = self.coin_hist
-		coin_hist["buy_q"] = coin_hist["go_signal"] * coin_hist["conviction_go"] * order_amount
-		coin_hist["sell_q"] = coin_hist["sell_signal"] * coin_hist["conviction_sell"] * order_amount
-		coin_hist["q"] = start + (coin_hist["buy_q"].cumsum() - coin_hist["sell_q"].cumsum())
-		coin_hist["sell_rev"] = coin_hist["sell_q"] * coin_hist["sell_signal"] * coin_hist["price"]
-		coin_hist["buy_cost"] = coin_hist["buy_q"] * coin_hist["go_signal"] * coin_hist["price"]
-		coin_hist["TRev"] = coin_hist["sell_rev"].cumsum()
-		coin_hist["TCost"] = coin_hist["buy_cost"].cumsum()
-		coin_hist["curr_val"] = coin_hist["q"] * coin_hist["price"]
-		coin_hist["cash_flow"] = coin_hist["TRev"] - coin_hist["TCost"]
-		coin_hist["hold_val"] = start * coin_hist["price"]
-		coin_hist["pnl"] = (coin_hist["curr_val"] + coin_hist["cash_flow"]) - coin_hist["hold_val"]
-		coin_hist["algo_rt"] = (coin_hist["curr_val"] + coin_hist["cash_flow"])/coin_hist["hold_val"]
-		coin_hist["trade_ind"] = coin_hist["go_signal"] * coin_hist["sell_signal"]
-		self.coin_hist = coin_hist
-
 	def summary(self):
 		total_revenue = 0
 		total_cost = 0
@@ -344,17 +392,17 @@ class Trader(object):
 		a2 = 100*(self.coin_hist['algo_rt'].tail(1).values[0]-1)
 		print('CASHFLOW')
 		print('--------------------------------------')
-		print('Cash spent (Total Buy Cost): $' + str(round(total_cost,2)))
-		print('Cash earned (Total Sell Revenue): $'+ str(round(total_revenue,2)))
-		print('Net Cashflow: ' + str(round(total_revenue-total_cost, 2)))
+		print('Cash spent (Total Buy Cost): ' + str(round(total_cost,2)) + '  '+ self.coin2)
+		print('Cash earned (Total Sell Revenue): $'+ str(round(total_revenue,2))+ '  '+ self.coin2)
+		print('Net Cashflow: ' + str(round(total_revenue-total_cost, 2)) + '  '+ self.coin2)
 		print('--------------------------------------')
 		print()
 		print('ASSET VALUES: ')
 		print('--------------------------------------')
 		print('Start Quantity: ' + str(round(q1,3)) + ' ' + self.coin)
-		print('Starting Asset Value: $' + str(round(start_asset_val, 2)))
+		print('Starting Asset Value: ' + str(round(start_asset_val, 2))+ '  '+ self.coin2)
 		print('Ending Quantity: ' + str(round(q2,3)) + ' ' + self.coin)
-		print('Ending Assets Value: $' + str(round(total_asset_val,2)))
+		print('Ending Assets Value: ' + str(round(total_asset_val,2))+ '  '+ self.coin2)
 		print('Net Asset Value: $' + str(round(total_asset_val-start_asset_val,2)))
 		print('--------------------------------------')
 		print()
@@ -370,32 +418,3 @@ class Trader(object):
 		print('Algo Return over Hold%: ' +str(round(a2,2)) + '%')
 		print('--------------------------------------')
 
-	def push_order(feed):
-		buy_cost = round(float(feed[8]),4)
-		sell_rev = round(float(feed[9]),4)
-
-		if (buy_cost > 0) or (sell_rev > 0):
-			import cbpro
-			from authentication import (api_secret, api_key, api_pass)
-			from datetime import datetime
-			now = datetime.now()
-			url = 'https://api-public.sandbox.pro.coinbase.com'
-			client = cbpro.AuthenticatedClient(api_key, api_secret, api_pass, api_url=url)
-			order_transcript = "No Action"
-
-			if( buy_cost > 0):
-
-
-
-
-
-
-
-				order_transcript = str( client.place_market_order(product_id='ETH-BTC', side= 'buy', funds = buy_cost))
-
-			if (sell_rev > 0):
-				order_transcript = str(client.place_market_order(product_id='ETH-BTC', side= 'sell', funds = sell_rev))
-
-			log = open("eth-btc-log.txt", "a")
-			n = log.write((str(now) + " | " + "Buy: " + str(buy_cost) + "Sell: " + str(sell_rev) + " " + order_transcript + "\n"))
-			log.close()
