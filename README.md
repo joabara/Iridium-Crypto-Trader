@@ -252,7 +252,7 @@ plt.show()
 
 
     
-![png](output_11_0.png)
+![png](plots/output_11_0.png)
     
 
 
@@ -404,7 +404,7 @@ axb.legend(loc='upper right')
 
 
     
-![png](output_18_1.png)
+![png](plots/output_18_1.png)
     
 
 
